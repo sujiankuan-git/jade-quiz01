@@ -409,7 +409,7 @@
                         <p style="font-size:16px; color:var(--text-sec); margin-bottom:10px; font-weight:700;">🎯 慧眼识宝: <span id="final-correct" style="color:#fff;">0</span> / 20</p>
                         <p style="font-size:16px; color:var(--text-sec); margin-bottom:20px; font-weight:700;">⏱ 寻宝耗时: <span id="final-time" style="color:#fff;">0</span></p>
                         
-                        <div id="result-advice" style="text-align:left; font-size:14px; line-height:1.6; color:#fef3c7; background:rgba(255,255,255,0.1); padding:15px; border-radius:12px; border-left:4px solid var(--primary);"></div>
+                        <div id="result-advice" style="text-align:left; font-size:14px; line-height:1.6; color:#fef3c7; background:rgba(255,255,255,0.1); padding:15px; border-radius:12px;"></div>
                     </div>
                     
                     <div id="capture-footer" style="display:none; margin-top: 15px; color: var(--text-sec); font-size: 15px; font-weight: bold; border-top: 1px dashed var(--primary); padding-top: 15px; flex-direction: column; align-items: center; justify-content: center;">
@@ -420,9 +420,9 @@
                     </div>
                 </div>
                 
-                <div style="margin-top: 30px;">
-                    <button class="btn btn-main" onclick="sessionStorage.removeItem('jadeQuizState'); location.reload()">再探秘境</button>
-                    <button id="btn-share" class="btn btn-secondary" onclick="generatePoster()">邀请好友来战</button>
+                <div style="margin-top: 30px; display: flex; gap: 15px;">
+                    <button class="btn btn-main" style="flex: 1;" onclick="sessionStorage.removeItem('jadeQuizState'); location.reload()">再次闯关</button>
+                    <button id="btn-share" class="btn btn-secondary" style="flex: 1; margin-top: 0;" onclick="generatePoster()">邀请好友来战</button>
                 </div>
             </div>
         </div>
