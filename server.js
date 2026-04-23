@@ -32,17 +32,17 @@ const requireAuth = (req, res, next) => {
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.static('public')); // Serve frontend
-app.use('/uploads', express.static('uploads')); // Serve uploaded images
+app.use(express.static(path.join(__dirname, 'public'))); // Serve frontend
+app.use('/uploads', express.static(path.join(__dirname, 'uploads'))); // Serve uploaded images
 
 // Ensure uploads folder exists
-if (!fs.existsSync('./uploads')) {
-    fs.mkdirSync('./uploads');
+if (!fs.existsSync(path.join(__dirname, 'uploads'))) {
+    fs.mkdirSync(path.join(__dirname, 'uploads'));
 }
 
 // Multer storage for image uploads
 const storage = multer.diskStorage({
-    destination: (req, file, cb) => cb(null, './uploads/'),
+    destination: (req, file, cb) => cb(null, path.join(__dirname, 'uploads/')),
     filename: (req, file, cb) => {
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
         cb(null, uniqueSuffix + path.extname(file.originalname));
