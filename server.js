@@ -7,7 +7,7 @@ const fs = require('fs');
 const crypto = require('crypto');
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 function hashPassword(pwd) {
     return crypto.createHash('sha256').update(pwd).digest('hex');
