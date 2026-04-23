@@ -4,9 +4,30 @@ const cors = require('cors');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const crypto = require('crypto');
 
 const app = express();
 const PORT = 3000;
+
+function hashPassword(pwd) {
+    return crypto.createHash('sha256').update(pwd).digest('hex');
+}
+
+// In-memory valid tokens
+const validTokens = new Set();
+
+// Auth Middleware
+const requireAuth = (req, res, next) => {
+    const authHeader = req.headers['authorization'];
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ error: "Unauthorized" });
+    }
+    const token = authHeader.split(' ')[1];
+    if (!validTokens.has(token)) {
+        return res.status(401).json({ error: "Unauthorized or token expired" });
+    }
+    next();
+};
 
 // Middleware
 app.use(cors());
@@ -57,6 +78,32 @@ db.serialize(() => {
         time_taken INTEGER,
         create_time DATETIME DEFAULT CURRENT_TIMESTAMP
     )`);
+
+    db.run(`CREATE TABLE IF NOT EXISTS ad_config (
+        id INTEGER PRIMARY KEY,
+        image_url TEXT,
+        link_url TEXT,
+        is_enabled INTEGER DEFAULT 0
+    )`, () => {
+        db.get(`SELECT COUNT(*) as count FROM ad_config`, [], (err, row) => {
+            if (row && row.count === 0) {
+                db.run(`INSERT INTO ad_config (id, image_url, link_url, is_enabled) VALUES (1, '', '', 0)`);
+            }
+        });
+    });
+
+    db.run(`CREATE TABLE IF NOT EXISTS admin_auth (
+        id INTEGER PRIMARY KEY,
+        username TEXT UNIQUE,
+        password_hash TEXT
+    )`, () => {
+        db.get(`SELECT COUNT(*) as count FROM admin_auth`, [], (err, row) => {
+            if (row && row.count === 0) {
+                const defaultHash = hashPassword('admin123');
+                db.run(`INSERT INTO admin_auth (id, username, password_hash) VALUES (1, 'admin', ?)`, [defaultHash]);
+            }
+        });
+    });
 });
 
 // APIs
@@ -138,7 +185,7 @@ app.get('/api/do_seed', (req, res) => {
 });
 
 // 3. Update question (admin edit)
-app.put('/api/questions/:id', (req, res) => {
+app.put('/api/questions/:id', requireAuth, (req, res) => {
     const id = req.params.id;
     const q = req.body;
     db.run(`UPDATE questions SET 
@@ -160,8 +207,25 @@ app.put('/api/questions/:id', (req, res) => {
         });
 });
 
+// Create new empty question (admin create)
+app.post('/api/questions', requireAuth, (req, res) => {
+    db.run(`INSERT INTO questions (type, question_text, correct_idx) VALUES ('text', '新题目，请编辑题干', 0)`, [], function(err) {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ message: 'Question created', id: this.lastID });
+    });
+});
+
+// Delete question (admin delete)
+app.delete('/api/questions/:id', requireAuth, (req, res) => {
+    const id = req.params.id;
+    db.run(`DELETE FROM questions WHERE id = ?`, [id], function(err) {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ message: 'Question deleted', changes: this.changes });
+    });
+});
+
 // 4. Upload image
-app.post('/api/upload', upload.single('image'), (req, res) => {
+app.post('/api/upload', requireAuth, upload.single('image'), (req, res) => {
     if (!req.file) return res.status(400).json({ error: "No image uploaded" });
     res.json({ image_url: '/uploads/' + req.file.filename });
 });
@@ -184,6 +248,53 @@ app.get('/api/records', (req, res) => {
     });
 });
 
+// 7. Ad Config APIs
+app.get('/api/ad-config', (req, res) => {
+    db.get(`SELECT * FROM ad_config WHERE id = 1`, [], (err, row) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json(row || { image_url: '', link_url: '', is_enabled: 0 });
+    });
+});
+
+app.post('/api/ad-config', requireAuth, (req, res) => {
+    const { image_url, link_url, is_enabled } = req.body;
+    db.run(`UPDATE ad_config SET image_url = ?, link_url = ?, is_enabled = ? WHERE id = 1`, 
+    [image_url, link_url, is_enabled ? 1 : 0], function(err) {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ message: 'Ad config updated', changes: this.changes });
+    });
+});
+
+// 8. Auth APIs
+app.post('/api/login', (req, res) => {
+    const { username, password } = req.body;
+    db.get(`SELECT * FROM admin_auth WHERE username = ?`, [username], (err, row) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (!row || row.password_hash !== hashPassword(password)) {
+            return res.status(401).json({ error: "账号或密码错误" });
+        }
+        const token = crypto.randomBytes(32).toString('hex');
+        validTokens.add(token);
+        res.json({ message: "Login successful", token });
+    });
+});
+
+app.post('/api/change-password', requireAuth, (req, res) => {
+    const { oldPassword, newPassword } = req.body;
+    db.get(`SELECT * FROM admin_auth WHERE username = 'admin'`, [], (err, row) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (!row || row.password_hash !== hashPassword(oldPassword)) {
+            return res.status(401).json({ error: "旧密码错误" });
+        }
+        db.run(`UPDATE admin_auth SET password_hash = ? WHERE username = 'admin'`, [hashPassword(newPassword)], function(err) {
+            if (err) return res.status(500).json({ error: err.message });
+            // Invalidate all tokens on password change
+            validTokens.clear();
+            res.json({ message: "Password updated successfully" });
+        });
+    });
+});
+
 app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+    console.log(`Server running on port ${PORT}`);
 });

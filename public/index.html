@@ -388,6 +388,11 @@
             <div style="text-align: center; margin-top: auto; padding-top: 15px;">
                 <button style="background: none; border: none; color: var(--text-sec); font-size: 14px; text-decoration: underline; opacity: 0.5; padding: 10px; cursor: pointer;" onclick="if(confirm('放弃当前进度并返回首页？')) { sessionStorage.removeItem('jadeQuizState'); location.reload(); }">退出寻宝，返回首页</button>
             </div>
+            
+            <div id="ad-banner-container" style="display:none; width: 100%; margin-top: 15px; text-align: center; cursor: pointer;">
+                <img id="ad-banner-img" src="" style="width: 100%; border-radius: 8px; object-fit: cover; max-height: 80px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); border: 2px solid var(--primary-dark);">
+                <div style="font-size: 10px; color: var(--text-sec); opacity: 0.5; text-align: right; margin-top: 2px;">广告</div>
+            </div>
         </div>
 
         <!-- Page: Result -->
@@ -635,6 +640,21 @@
             switchPage('page-loading');
             
             try {
+                // Fetch Ad Config in parallel
+                fetch(`${API_BASE}/ad-config`).then(r => r.json()).then(adData => {
+                    const bannerContainer = document.getElementById('ad-banner-container');
+                    const bannerImg = document.getElementById('ad-banner-img');
+                    if (adData && adData.is_enabled === 1 && adData.image_url) {
+                        bannerImg.src = adData.image_url;
+                        bannerContainer.onclick = () => {
+                            if (adData.link_url) window.open(adData.link_url, '_blank');
+                        };
+                        bannerContainer.style.display = 'block';
+                    } else {
+                        bannerContainer.style.display = 'none';
+                    }
+                }).catch(e => console.error("Ad fetch error", e));
+
                 const res = await fetch(`${API_BASE}/questions/random`);
                 if (!res.ok) throw new Error("Failed");
                 questions = await res.json();
@@ -893,6 +913,24 @@
                 SoundManager.playLose();
             }
         }
+    // Fetch Ad Banner
+    function fetchAdConfigClient() {
+        fetch(`${API_BASE}/ad-config`).then(r => r.json()).then(adData => {
+            const bannerContainer = document.getElementById('ad-banner-container');
+            const bannerImg = document.getElementById('ad-banner-img');
+            if (adData && adData.is_enabled === 1 && adData.image_url) {
+                bannerImg.src = adData.image_url;
+                bannerContainer.onclick = () => {
+                    if (adData.link_url) window.open(adData.link_url, '_blank');
+                };
+                bannerContainer.style.display = 'block';
+            } else {
+                bannerContainer.style.display = 'none';
+            }
+        }).catch(e => console.error("Ad fetch error", e));
+    }
+    fetchAdConfigClient();
+
     </script>
 </body>
 </html>
