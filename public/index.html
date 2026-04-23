@@ -864,6 +864,18 @@
                 
                 feedbackInline.style.display = 'flex';
                 feedbackInline.style.flexDirection = 'column';
+                const isLastQuestion = currIdx >= 19 || currIdx >= questions.length - 1;
+                let actionHtml = '';
+                
+                if (isLastQuestion) {
+                    actionHtml = `<div style="margin-top:20px; color:var(--text-sec); font-size:14px; text-align:center;">即将生成鉴定报告...</div>`;
+                    setTimeout(() => {
+                        nextQuestion();
+                    }, 3000);
+                } else {
+                    actionHtml = `<button class="btn btn-main" style="margin-top:20px;" onclick="SoundManager.playClick(); nextQuestion()">继续答题</button>`;
+                }
+
                 feedbackInline.innerHTML = `
                     <div style="display: flex; flex-direction: row; align-items: flex-start; gap: 12px; animation: bounceIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
                         <img src="images/avatar_fail.png" style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover; object-position: center; border: 3px solid var(--primary); box-shadow: 0 5px 15px rgba(0,0,0,0.5); flex-shrink: 0; background: white; margin-top: 5px;">
@@ -872,7 +884,7 @@
                             ${q.explanation || '翡翠水深，再接再厉！'}
                         </div>
                     </div>
-                    <button class="btn btn-main" style="margin-top:20px;" onclick="SoundManager.playClick(); nextQuestion()">继续寻宝</button>
+                    ${actionHtml}
                 `;
             }
         }
