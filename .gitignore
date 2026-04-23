@@ -1,0 +1,4 @@
+node_modules/
+questions.db
+.env
+.DS_Store

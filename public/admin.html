@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>翡翠答题 - 后台管理</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background: #f0f2f5; height: 100vh; overflow: hidden; }
+        .admin-layout { display: flex; height: 100%; }
+        .sidebar { width: 250px; background: #1f2937; color: white; padding: 20px; display: flex; flex-direction: column; }
+        .sidebar h1 { color: #10B981; font-size: 24px; margin-top: 0; margin-bottom: 30px; text-align: center; }
+        .sidebar nav { display: flex; flex-direction: column; gap: 10px; }
+        .sidebar nav button { padding: 12px 20px; background: transparent; color: #d1d5db; border: none; border-radius: 6px; cursor: pointer; text-align: left; font-size: 16px; transition: background 0.2s; }
+        .sidebar nav button:hover { background: #374151; color: white; }
+        .sidebar nav button.active { background: #10B981; color: white; font-weight: bold; }
+        .content-area { flex: 1; padding: 30px; overflow-y: auto; }
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #e5e7eb; }
+        th { background-color: #f9fafb; font-weight: 600; color: #374151; }
+        tr:hover { background-color: #f3f4f6; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .sub-tabs { margin-bottom: 20px; display: flex; gap: 10px; }
+        .sub-tab-btn { padding: 8px 16px; background: white; color: #374151; border: 1px solid #d1d5db; border-radius: 4px; cursor: pointer; transition: 0.2s; font-size: 14px; }
+        .sub-tab-btn.active { background: #3b82f6; color: white; border-color: #3b82f6; }
+        .sub-tab-btn:hover:not(.active) { background: #f3f4f6; }
+        .btn-edit { background: #3b82f6; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; }
+        
+        /* Modal */
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
+        .modal-content { background: white; padding: 30px; border-radius: 8px; width: 600px; max-height: 90vh; overflow-y: auto; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 14px; }
+        .form-group input[type="text"], .form-group input[type="number"], .form-group select, .form-group textarea { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        .form-row { display: flex; gap: 15px; align-items: end; }
+        .modal-btns { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+        .btn-save { background: #10B981; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; }
+        .btn-cancel { background: #9ca3af; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; }
+        .img-preview { max-width: 100px; max-height: 100px; display: block; margin-top: 5px; }
+    </style>
+</head>
+<body>
+
+<div class="admin-layout">
+    <aside class="sidebar">
+        <h1>翡翠管理中枢</h1>
+        <nav>
+            <button id="tab-btn-questions" class="active" onclick="switchTab('questions')">题库管理</button>
+            <button id="tab-btn-records" onclick="switchTab('records')">答题记录</button>
+        </nav>
+    </aside>
+
+    <main class="content-area">
+        <!-- Questions Tab -->
+    <div id="tab-questions" class="tab-content active">
+        <div class="sub-tabs">
+            <button class="sub-tab-btn active" onclick="renderQuestionsByType('all')">全部</button>
+            <button class="sub-tab-btn" onclick="renderQuestionsByType('text')">文字选择题</button>
+            <button class="sub-tab-btn" onclick="renderQuestionsByType('img-text')">图文选择题</button>
+            <button class="sub-tab-btn" onclick="renderQuestionsByType('image')">图片选择题</button>
+            <button class="sub-tab-btn" onclick="renderQuestionsByType('boolean')">判断题</button>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>题干</th>
+                    <th>图片预览</th>
+                    <th>答案</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody id="questions-tbody"></tbody>
+        </table>
+    </div>
+
+    <!-- Records Tab -->
+    <div id="tab-records" class="tab-content">
+        <table>
+            <thead>
+                <tr>
+                    <th>记录ID</th>
+                    <th>用户</th>
+                    <th>得分</th>
+                    <th>用时</th>
+                    <th>时间</th>
+                </tr>
+            </thead>
+            <tbody id="records-tbody"></tbody>
+        </table>
+        </div>
+    </main>
+</div>
+
+<!-- Edit Modal -->
+<div id="edit-modal" class="modal">
+    <div class="modal-content">
+        <h2>编辑题目 (<span id="edit-id"></span>)</h2>
+        <form id="edit-form">
+            <div class="form-group">
+                <label>题目类型</label>
+                <select id="edit-q-type" onchange="renderOptionsByEditType()">
+                    <option value="text">文字选择题 (Text)</option>
+                    <option value="img-text">图文选择题 (Image+Text)</option>
+                    <option value="image">图片选择题 (Image)</option>
+                    <option value="boolean">判断题 (True/False)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>题干文本</label>
+                <textarea id="edit-q-text" rows="2"></textarea>
+            </div>
+            
+            <div class="form-group" id="edit-q-img-group" style="background:#f9fafb; padding:10px; border-radius:5px;">
+                <label style="color:#d97706;">主图占位描述（如有提示，请上传图片替换）</label>
+                <div id="edit-q-img-desc" style="font-size:13px; color:#6b7280; margin-bottom:5px;"></div>
+                <div class="form-row">
+                    <input type="text" id="edit-q-img-url" placeholder="图片URL 或 点击上传" readonly style="flex:1;">
+                    <input type="file" id="upload-q-img" style="display:none;" onchange="handleUpload(this, 'edit-q-img-url')">
+                    <button type="button" onclick="document.getElementById('upload-q-img').click()">上传新图</button>
+                    <button type="button" onclick="document.getElementById('edit-q-img-url').value=''">清空</button>
+                </div>
+                <img id="edit-q-img-preview" class="img-preview" src="">
+            </div>
+
+            <!-- Options -->
+            <div id="opts-container"></div>
+
+            <div class="form-group">
+                <label>正确选项索引 (0-3)</label>
+                <input type="number" id="edit-correct" min="0" max="3">
+            </div>
+            <div class="form-group">
+                <label>答案解析</label>
+                <textarea id="edit-expl" rows="2"></textarea>
+            </div>
+
+            <div class="modal-btns">
+                <button type="button" class="btn-cancel" onclick="closeModal()">取消</button>
+                <button type="button" class="btn-save" onclick="saveQuestion()">保存</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    let currentQuestions = [];
+    let currentEditData = {};
+
+    function switchTab(tab) {
+        document.getElementById('tab-questions').classList.remove('active');
+        document.getElementById('tab-records').classList.remove('active');
+        document.getElementById('tab-btn-questions').classList.remove('active');
+        document.getElementById('tab-btn-records').classList.remove('active');
+        
+        document.getElementById('tab-' + tab).classList.add('active');
+        document.getElementById('tab-btn-' + tab).classList.add('active');
+
+        if(tab === 'questions') loadQuestions();
+        if(tab === 'records') loadRecords();
+    }
+
+    let currentFilterType = 'all';
+
+    async function loadQuestions() {
+        const res = await fetch('/api/questions');
+        currentQuestions = await res.json();
+        renderQuestionsByType(currentFilterType);
+    }
+
+    function renderQuestionsByType(type) {
+        currentFilterType = type;
+        
+        document.querySelectorAll('.sub-tab-btn').forEach(btn => {
+            btn.classList.remove('active');
+            if (btn.getAttribute('onclick').includes(`'${type}'`)) {
+                btn.classList.add('active');
+            }
+        });
+
+        const tbody = document.getElementById('questions-tbody');
+        tbody.innerHTML = '';
+        
+        const filtered = type === 'all' ? currentQuestions : currentQuestions.filter(q => q.type === type);
+        
+        filtered.forEach(q => {
+            let imgDisplay = "";
+            
+            if (q.type === 'img-text') {
+                if (q.image_url) {
+                    imgDisplay = `<img src="${q.image_url}" style="height:50px; max-width:80px; object-fit:cover; cursor:pointer; border-radius:4px; box-shadow:0 1px 3px rgba(0,0,0,0.2);" onclick="window.open('${q.image_url}', '_blank')">`;
+                } else {
+                    imgDisplay = `<span style="color:red; font-size:12px;">待传主图</span>`;
+                }
+            } else if (q.type === 'image') {
+                let img1 = q.opt1_image_url ? `<img src="${q.opt1_image_url}" style="height:50px; width:50px; object-fit:cover; cursor:pointer; margin-right:5px; border-radius:4px; border:3px solid ${q.correct_idx === 0 ? '#10B981' : 'transparent'}; box-sizing:border-box;" onclick="window.open('${q.opt1_image_url}', '_blank')">` : `<span style="color:red; font-size:12px; margin-right:5px;">缺图1</span>`;
+                let img2 = q.opt2_image_url ? `<img src="${q.opt2_image_url}" style="height:50px; width:50px; object-fit:cover; cursor:pointer; border-radius:4px; border:3px solid ${q.correct_idx === 1 ? '#10B981' : 'transparent'}; box-sizing:border-box;" onclick="window.open('${q.opt2_image_url}', '_blank')">` : `<span style="color:red; font-size:12px;">缺图2</span>`;
+                imgDisplay = `<div style="display:flex; align-items:center;">${img1}${img2}</div>`;
+            } else {
+                const hasDesc = q.image_description || q.opt1_image_desc || q.opt2_image_desc || q.opt3_image_desc || q.opt4_image_desc;
+                const hasImg = q.image_url || q.opt1_image_url || q.opt2_image_url || q.opt3_image_url || q.opt4_image_url;
+                if (hasDesc && !hasImg) imgDisplay = "<span style='color:red; font-size:12px;'>待上传</span>";
+                else if (hasImg) imgDisplay = "<span style='color:green; font-size:12px;'>已上传</span>";
+                else imgDisplay = "<span style='color:#9ca3af; font-size:12px;'>无要求</span>";
+            }
+
+            let answerDisplay = `选项 ${q.correct_idx + 1}`;
+            if (q.type === 'boolean') {
+                answerDisplay = q.correct_idx === 0 ? "正确" : "错误";
+            } else if (q.type === 'image') {
+                answerDisplay = `<span style="color:#10b981; font-size:12px;">见图框</span>`;
+            }
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${q.id}</td>
+                <td style="max-width:300px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${q.question_text || ''}</td>
+                <td>${imgDisplay}</td>
+                <td style="${q.type === 'boolean' ? 'font-weight:bold; color:#10b981;' : ''}">${answerDisplay}</td>
+                <td><button class="btn-edit" onclick="openEdit(${q.id})">编辑 / 上传</button></td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    async function loadRecords() {
+        const res = await fetch('/api/records');
+        const list = await res.json();
+        const tbody = document.getElementById('records-tbody');
+        tbody.innerHTML = '';
+        list.forEach(r => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${r.id}</td>
+                <td>${r.user_name}</td>
+                <td style="color:#10B981; font-weight:bold;">${r.score}</td>
+                <td>${r.time_taken}s</td>
+                <td>${r.create_time}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function renderOptionsByEditType() {
+        const type = document.getElementById('edit-q-type').value;
+        const imgField = document.getElementById('edit-q-img-group');
+        imgField.style.display = (type === 'img-text') ? 'block' : 'none';
+        
+        const q = currentEditData;
+        const optsCont = document.getElementById('opts-container');
+        optsCont.innerHTML = '';
+        
+        let maxOpts = (type === 'image' || type === 'boolean') ? 2 : 4;
+        document.getElementById('edit-correct').max = maxOpts - 1;
+        if (parseInt(document.getElementById('edit-correct').value) >= maxOpts) {
+            document.getElementById('edit-correct').value = 0;
+        }
+        
+        for(let i=1; i<=maxOpts; i++) {
+            let txt = q[`opt${i}`] || '';
+            let url = q[`opt${i}_image_url`] || '';
+            let desc = q[`opt${i}_image_desc`] || '';
+            
+            if (type === 'boolean') {
+                if (i===1 && !txt) txt = '正确';
+                if (i===2 && !txt) txt = '错误';
+            }
+            
+            let html = `<div class="form-group" style="padding-left:15px; border-left:3px solid #e5e7eb;">
+                <label>选项 ${i}</label>`;
+                
+            if (type !== 'image') {
+                html += `<input type="text" id="edit-opt${i}" value="${txt}" placeholder="选项文字">`;
+            }
+            
+            if (type !== 'boolean' && type !== 'text') {
+                if (desc) html += `<div style="font-size:12px; color:#6b7280; margin:5px 0;">图占位: ${desc}</div>`;
+                html += `
+                <div class="form-row" style="margin-top:5px;">
+                    <input type="text" id="edit-opt${i}-img" value="${url}" placeholder="图片URL" readonly style="flex:1;">
+                    <input type="file" id="upload-opt${i}" style="display:none;" onchange="handleUpload(this, 'edit-opt${i}-img')">
+                    <button type="button" onclick="document.getElementById('upload-opt${i}').click()">上传</button>
+                    <button type="button" onclick="document.getElementById('edit-opt${i}-img').value=''">清空</button>
+                </div>`;
+            }
+            html += `</div>`;
+            optsCont.innerHTML += html;
+        }
+    }
+
+    function openEdit(id) {
+        const q = currentQuestions.find(x => x.id === id);
+        currentEditData = { ...q };
+        document.getElementById('edit-id').innerText = id;
+        document.getElementById('edit-q-type').value = q.type || 'text';
+        document.getElementById('edit-q-text').value = q.question_text || '';
+        document.getElementById('edit-q-img-desc').innerText = q.image_description ? `要求: ${q.image_description}` : '无要求';
+        document.getElementById('edit-q-img-url').value = q.image_url || '';
+        document.getElementById('edit-q-img-preview').src = q.image_url || '';
+        
+        document.getElementById('edit-correct').value = q.correct_idx;
+        document.getElementById('edit-expl').value = q.explanation || '';
+        
+        renderOptionsByEditType();
+        document.getElementById('edit-modal').style.display = 'flex';
+    }
+
+    function closeModal() {
+        document.getElementById('edit-modal').style.display = 'none';
+    }
+
+    async function handleUpload(fileInput, targetInputId) {
+        if(!fileInput.files[0]) return;
+        const formData = new FormData();
+        formData.append('image', fileInput.files[0]);
+        
+        try {
+            const res = await fetch('/api/upload', { method: 'POST', body: formData });
+            const data = await res.json();
+            if(data.image_url) {
+                document.getElementById(targetInputId).value = data.image_url;
+                if(targetInputId === 'edit-q-img-url') document.getElementById('edit-q-img-preview').src = data.image_url;
+            }
+        } catch(e) { alert("上传失败!"); }
+    }
+
+    async function saveQuestion() {
+        const q = currentEditData;
+        
+        q.type = document.getElementById('edit-q-type').value;
+        q.question_text = document.getElementById('edit-q-text').value;
+        q.image_url = document.getElementById('edit-q-img-url').value || null;
+        
+        if (q.type !== 'img-text') q.image_url = null;
+
+        for(let i=1; i<=4; i++) {
+            const elTxt = document.getElementById(`edit-opt${i}`);
+            const elImg = document.getElementById(`edit-opt${i}-img`);
+            
+            q[`opt${i}`] = elTxt ? (elTxt.value || null) : null;
+            q[`opt${i}_image_url`] = elImg ? (elImg.value || null) : null;
+            
+            // Clean up missing fields based on type explicitly just to be safe
+            if (q.type === 'image') q[`opt${i}`] = null;
+            if (q.type === 'text' || q.type === 'boolean') q[`opt${i}_image_url`] = null;
+        }
+
+        q.correct_idx = parseInt(document.getElementById('edit-correct').value) || 0;
+        q.explanation = document.getElementById('edit-expl').value;
+
+        try {
+            await fetch(`/api/questions/${q.id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(q)
+            });
+            closeModal();
+            loadQuestions();
+        } catch(e) {
+            alert('保存失败!');
+        }
+    }
+
+    // Init
+    loadQuestions();
+</script>
+</body>
+</html>

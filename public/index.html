@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>回流翡翠大闯关 - 国潮寻宝</title>
+    <!-- SEO & Social Share Meta Tags -->
+    <meta name="description" content="我在翡翠探宝中斩获高分！快来测测你的翡翠鉴赏眼力，看看你是什么段位？">
+    <meta property="og:title" content="回流翡翠大闯关 - 测测你的眼力">
+    <meta property="og:description" content="我在翡翠探宝中斩获高分！快来测测你的翡翠鉴赏眼力，看看你是什么段位？">
+    <meta property="og:image" content="/images/placeholder.png">
+    <meta property="og:type" content="website">
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Noto+Sans+SC:wght@400;700&display=swap');
+
+        :root {
+            --primary: #34d399; /* Emerald/Jade */
+            --primary-dark: #059669; 
+            --jade: #10b981; 
+            --jade-dark: #047857;
+            --bg-color: #064e3b;
+            --surface: #047857; 
+            --text-main: #ecfdf5;
+            --text-sec: #a7f3d0;
+            --border-color: #047857;
+            --wrong: #ef4444;
+            --correct: #10b981;
+            font-family: 'Noto Sans SC', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: radial-gradient(circle at center, #064e3b 0%, #022c22 100%);
+            color: var(--text-main);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            font-family: 'Noto Sans SC', sans-serif;
+        }
+
+        #app {
+            width: 100%;
+            height: 100%;
+            max-width: 500px;
+            background: linear-gradient(135deg, #047857 0%, #022c22 100%);
+            border: none;
+            box-shadow: inset 0 0 40px rgba(0,0,0,0.6);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        @media (min-width: 500px) {
+            #app {
+                height: 92vh;
+                border-radius: 24px;
+                border: 4px solid var(--primary);
+                box-shadow: 0 0 20px rgba(52, 211, 153, 0.4), inset 0 0 40px rgba(0,0,0,0.6);
+            }
+        }
+
+        /* Sound Toggle Button */
+        #sound-toggle {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 40px;
+            height: 40px;
+            background: var(--primary);
+            border: 3px solid var(--primary-dark);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 100;
+            box-shadow: 0 4px 0 var(--primary-dark);
+            transition: transform 0.1s;
+        }
+        #sound-toggle:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 var(--primary-dark);
+        }
+
+        .page {
+            display: none;
+            width: 100%;
+            height: 100%;
+            flex-direction: column;
+            padding: 40px 30px;
+            animation: bounceIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        .page.active { display: flex; }
+
+        @keyframes bounceIn {
+            0% { opacity: 0; transform: scale(0.9); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        .title {
+            font-family: 'ZCOOL KuaiLe', cursive;
+            font-size: 46px;
+            color: var(--primary);
+            text-align: center;
+            margin-bottom: 20px;
+            text-shadow: 3px 3px 0 var(--primary-dark), 0 0 20px rgba(52, 211, 153, 0.6);
+            letter-spacing: 2px;
+            line-height: 1.2;
+        }
+
+        .subtitle {
+            font-size: 16px;
+            color: var(--text-sec);
+            text-align: center;
+            margin-bottom: 40px;
+            line-height: 1.8;
+            font-weight: 700;
+            background: rgba(0,0,0,0.3);
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px dashed var(--primary);
+        }
+
+        /* 3D Gamified Buttons */
+        .btn {
+            width: 100%;
+            padding: 18px;
+            border: none;
+            border-radius: 16px;
+            font-size: 22px;
+            font-family: 'ZCOOL KuaiLe', cursive;
+            cursor: pointer;
+            transition: all 0.1s ease;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        .btn-main {
+            background: linear-gradient(to bottom, #f59e0b, #d97706); /* Gold/Amber */
+            color: #fff;
+            border: 3px solid #92400e;
+            box-shadow: 0 8px 0 #78350f, 0 15px 20px rgba(0,0,0,0.4);
+            text-shadow: 2px 2px 0 #92400e;
+        }
+        .btn-main:active {
+            transform: translateY(8px);
+            box-shadow: 0 0 0 #78350f, 0 5px 10px rgba(0,0,0,0.4);
+        }
+        .btn-secondary {
+            background: linear-gradient(to bottom, #10b981, #047857); /* Emerald/Jade */
+            color: #ffffff;
+            border: 3px solid #064e3b;
+            box-shadow: 0 8px 0 #022c22, 0 15px 20px rgba(0,0,0,0.4);
+            text-shadow: 2px 2px 0 #064e3b;
+            margin-top: 15px;
+        }
+        .btn-secondary:active {
+            transform: translateY(8px);
+            box-shadow: 0 0 0 #022c22, 0 5px 10px rgba(0,0,0,0.4);
+        }
+
+        /* Quiz Page Elements */
+        .q-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 16px;
+            font-family: 'ZCOOL KuaiLe', cursive;
+            color: var(--primary);
+            margin-bottom: 12px;
+            text-shadow: 1px 1px 0 var(--primary-dark);
+            background: rgba(0,0,0,0.4);
+            padding: 10px 15px;
+            border-radius: 12px;
+            border: 2px solid var(--border-color);
+        }
+        
+        .progress-bar-container {
+            width: 100%;
+            height: 16px;
+            background: #022c22;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            border: 3px solid #064e3b;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.8);
+            overflow: hidden;
+            position: relative;
+        }
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #ef4444, #f59e0b);
+            width: 100%;
+            transform-origin: left;
+            border-radius: 4px;
+            box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+        }
+
+        .q-text {
+            font-size: 20px;
+            line-height: 1.5;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        .q-img {
+            width: 100%;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            object-fit: cover;
+            max-height: 200px;
+            border: 3px solid var(--primary);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        }
+
+        .q-img-placeholder {
+            width: 100%;
+            padding: 30px 20px;
+            background: rgba(0,0,0,0.4);
+            border: 2px dashed var(--primary-dark);
+            border-radius: 12px;
+            text-align: center;
+            color: var(--text-sec);
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .options-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            flex: 1;
+            overflow-y: auto;
+            padding-bottom: 20px;
+        }
+        .option-item {
+            background: linear-gradient(to bottom, #fffbeb, #fef3c7);
+            padding: 14px 20px;
+            border-radius: 12px;
+            border: 3px solid #d97706;
+            cursor: pointer;
+            transition: transform 0.1s, box-shadow 0.1s;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 6px 0 #b45309;
+            font-size: 16px;
+            font-weight: 700;
+            color: #78350f;
+        }
+        .option-item:active {
+            transform: translateY(6px);
+            box-shadow: 0 0 0 #b45309;
+        }
+        .option-item.img-opt {
+            padding: 10px;
+            flex-direction: column;
+        }
+        .option-item img {
+            width: 100%;
+            border-radius: 8px;
+            max-height: 120px;
+            object-fit: cover;
+            border: 2px solid #059669;
+        }
+
+        /* Animations */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-10px) rotate(-2deg); }
+            40%, 80% { transform: translateX(10px) rotate(2deg); }
+        }
+        .shake { animation: shake 0.4s ease-in-out; }
+
+        @keyframes glow {
+            0% { box-shadow: 0 0 5px #10b981; border-color: #10b981; background: #d1fae5; }
+            50% { box-shadow: 0 0 20px #10b981, 0 0 40px #10b981; border-color: #059669; background: #a7f3d0; }
+            100% { box-shadow: 0 0 5px #10b981; border-color: #10b981; background: #d1fae5; }
+        }
+        .glow { animation: glow 0.6s infinite; color: #064e3b; }
+
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .slide-in-right { animation: slideInRight 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            color: var(--primary);
+            margin: auto;
+            font-family: 'ZCOOL KuaiLe', cursive;
+            font-size: 24px;
+        }
+        
+        canvas#confetti {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        /* Toast Popup */
+        .toast-popup {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.5);
+            background: rgba(4, 120, 87, 0.95);
+            border: 4px solid var(--primary);
+            padding: 30px 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8), 0 0 30px var(--primary);
+            color: #fff;
+            font-family: 'ZCOOL KuaiLe', cursive;
+            font-size: 32px;
+            text-align: center;
+            z-index: 2000;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-shadow: 2px 2px 0 var(--primary-dark);
+        }
+        .toast-popup.show {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="app">
+        <div id="sound-toggle" onclick="toggleSound()">🔊</div>
+        <canvas id="confetti"></canvas>
+        <div id="toast-popup" class="toast-popup" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;">
+            <img src="images/avatar_success.png" style="width: 60px; height: 60px; border-radius: 50%; border: 3px solid white; background: white; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
+            <span>✨ 慧眼识珠 +5分 ✨</span>
+        </div>
+
+        <!-- Page: Start -->
+        <div id="page-start" class="page active">
+            <div style="margin: auto 0; text-align: center;">
+                <img src="images/banner_new.png" alt="秘境探宝" style="width: 100%; border-radius: 16px; margin-bottom: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 3px solid var(--primary); max-height: 180px; object-fit: cover;">
+                <h1 class="title">翡翠大闯关<br><span style="font-size:24px; color:var(--text-main); text-shadow: 2px 2px #000;">你真的了解翡翠吗？</span></h1>
+                <p class="subtitle">面对云谲波诡的翡翠市场<br>你是一眼看透迷雾的行家<br>还是入场即被收割的小白？</p>
+                <button class="btn btn-main" onclick="startTest()">开启试炼</button>
+            </div>
+        </div>
+
+        <!-- Page: Loading -->
+        <div id="page-loading" class="page">
+            <div class="loading">
+                <svg width="60" height="60" viewBox="0 0 50 50" class="spinner"><circle cx="25" cy="25" r="20" fill="none" stroke="currentColor" stroke-width="5" stroke-dasharray="80" stroke-dashoffset="0"><animateTransform attributeName="transform" type="rotate" from="0 25 25" to="360 25 25" dur="1s" repeatCount="indefinite"/></circle></svg>
+                <p style="margin-top:20px; text-shadow: 2px 2px 0 var(--primary-dark);">寻宝准备中...</p>
+            </div>
+        </div>
+
+        <!-- Page: Quiz -->
+        <div id="page-quiz" class="page">
+            <div class="q-header">
+                <span>宝卡 <span id="q-curr" style="color:#fff; font-size:20px;">1</span> / 20</span>
+                <span>⏳ <span id="timer-text" style="color:#fff; font-size:20px;">30</span>s</span>
+            </div>
+            <div class="progress-bar-container">
+                <div id="timer-bar" class="progress-bar"></div>
+            </div>
+
+            <div id="q-content">
+                <div id="q-text" class="q-text">这里是问题内容？</div>
+                <div id="q-media"></div>
+            </div>
+
+            <div id="inline-feedback" style="display:none; margin-bottom: 20px; animation: bounceIn 0.3s ease;"></div>
+
+            <div id="q-options" class="options-grid">
+                <!-- Options injected via JS -->
+            </div>
+            
+            <div style="text-align: center; margin-top: auto; padding-top: 15px;">
+                <button style="background: none; border: none; color: var(--text-sec); font-size: 14px; text-decoration: underline; opacity: 0.5; padding: 10px; cursor: pointer;" onclick="if(confirm('放弃当前进度并返回首页？')) { sessionStorage.removeItem('jadeQuizState'); location.reload(); }">退出寻宝，返回首页</button>
+            </div>
+        </div>
+
+        <!-- Page: Result -->
+        <div id="page-result" class="page">
+            <div style="margin: auto 0; text-align: center;">
+                <div style="display: flex; justify-content: center; margin-bottom: -40px; position: relative; z-index: 10;">
+                    <img id="result-avatar" src="images/avatar_success.png" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; object-position: center; border: 4px solid var(--primary); box-shadow: 0 5px 15px rgba(0,0,0,0.5); background: white;">
+                </div>
+                <div id="capture-area" style="padding: 45px 10px 20px 10px; border-radius: 20px; background: linear-gradient(135deg, #047857 0%, #022c22 100%);">
+                    <p style="font-size: 16px; color: var(--text-sec); margin-bottom: 5px; font-weight: bold; letter-spacing: 2px;">您的翡翠知识水平</p>
+                    <h1 class="title" id="result-lvl" style="font-size: 42px; margin-bottom: 20px; color: var(--primary); text-shadow: 2px 2px 0 var(--primary-dark);">评估中</h1>
+                    
+                    <div style="margin: 0 0 20px 0; background: rgba(0,0,0,0.5); padding:25px; border-radius:20px; border: 3px solid var(--primary); box-shadow: inset 0 0 20px rgba(0,0,0,0.8);">
+                        <p style="font-size:70px; color:var(--primary); font-family:'ZCOOL KuaiLe', cursive; font-weight:700; margin-bottom:10px; line-height:1; text-shadow: 3px 3px 0 var(--primary-dark);">
+                            <span id="final-score">0</span><span style="font-size:24px; color:var(--text-main); margin-left:8px; text-shadow:none;">分</span>
+                        </p>
+                        <p style="font-size:16px; color:var(--text-sec); margin-bottom:10px; font-weight:700;">🎯 慧眼识宝: <span id="final-correct" style="color:#fff;">0</span> / 20</p>
+                        <p style="font-size:16px; color:var(--text-sec); margin-bottom:20px; font-weight:700;">⏱ 寻宝耗时: <span id="final-time" style="color:#fff;">0</span></p>
+                        
+                        <div id="result-advice" style="text-align:left; font-size:14px; line-height:1.6; color:#fef3c7; background:rgba(255,255,255,0.1); padding:15px; border-radius:12px; border-left:4px solid var(--primary);"></div>
+                    </div>
+                    
+                    <div id="capture-footer" style="display:none; margin-top: 15px; color: var(--text-sec); font-size: 15px; font-weight: bold; border-top: 1px dashed var(--primary); padding-top: 15px; flex-direction: column; align-items: center; justify-content: center;">
+                        <div style="background: white; padding: 5px; border-radius: 8px; margin-bottom: 10px;">
+                            <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='white'/><rect x='10' y='10' width='20' height='20'/><rect x='40' y='10' width='20' height='20'/><rect x='70' y='10' width='20' height='20'/><rect x='10' y='40' width='50' height='20'/><rect x='70' y='40' width='20' height='20'/><rect x='10' y='70' width='20' height='20'/><rect x='40' y='70' width='50' height='20'/></svg>" style="width: 70px; height: 70px; display: block;">
+                        </div>
+                        <span style="font-family: 'ZCOOL KuaiLe', cursive; text-shadow: 1px 1px 0 rgba(0,0,0,0.5);">长按扫码 · 测测你的鉴别眼力！</span>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 30px;">
+                    <button class="btn btn-main" onclick="sessionStorage.removeItem('jadeQuizState'); location.reload()">再探秘境</button>
+                    <button id="btn-share" class="btn btn-secondary" onclick="generatePoster()">邀请好友来战</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Poster Overlay -->
+    <div id="poster-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:9999; flex-direction:column; align-items:center; justify-content:center; padding: 20px;">
+        <div style="color:white; font-size:18px; font-weight:bold; margin-bottom:15px; font-family:'ZCOOL KuaiLe', cursive; text-shadow: 0 2px 5px rgba(0,0,0,0.8); text-align: center;">
+            ✨ 长按下方图片保存，即可分享到朋友圈 ✨
+        </div>
+        <div id="poster-container" style="width:100%; max-width:350px; max-height:75vh; overflow-y:auto; border-radius:15px; box-shadow: 0 0 20px rgba(52, 211, 153, 0.5);">
+            <!-- Image goes here -->
+        </div>
+        <button style="margin-top: 25px; padding: 10px 30px; border-radius: 25px; background: none; border: 2px solid white; color: white; font-size: 16px; cursor: pointer;" onclick="document.getElementById('poster-overlay').style.display='none'">关闭</button>
+    </div>
+
+    <script>
+        async function generatePoster() {
+            const btn = document.getElementById('btn-share');
+            const oldText = btn.innerText;
+            btn.innerText = '生成海报中...';
+            btn.disabled = true;
+
+            const captureArea = document.getElementById('capture-area');
+            const footer = document.getElementById('capture-footer');
+            footer.style.display = 'flex'; 
+            
+            try {
+                const canvas = await html2canvas(captureArea, {
+                    scale: 2, // High resolution for mobile
+                    backgroundColor: '#047857',
+                    useCORS: true,
+                    logging: false
+                });
+                
+                const imgUrl = canvas.toDataURL('image/jpeg', 0.9);
+                const container = document.getElementById('poster-container');
+                container.innerHTML = `<img src="${imgUrl}" style="width: 100%; display: block; border-radius: 15px;">`;
+                
+                document.getElementById('poster-overlay').style.display = 'flex';
+            } catch (err) {
+                console.error(err);
+                alert('生成海报失败，请稍后再试或直接截屏分享！');
+            } finally {
+                footer.style.display = 'none';
+                btn.innerText = oldText;
+                btn.disabled = false;
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const saved = sessionStorage.getItem('jadeQuizState');
+            if (saved) {
+                try {
+                    const state = JSON.parse(saved);
+                    if (state.questions && state.questions.length > 0) {
+                        questions = state.questions;
+                        currIdx = state.currIdx;
+                        score = state.score;
+                        correctCount = state.correctCount;
+                        username = state.username;
+                        if (state.startTime) startTime = new Date(state.startTime);
+                        if (state.timeTaken) window.finalTimeTaken = state.timeTaken;
+                        
+                        if (state.currentPage === 'page-quiz') {
+                            switchPage('page-quiz');
+                            renderQuestion();
+                        } else if (state.currentPage === 'page-result') {
+                            switchPage('page-result');
+                            reconstructResult(window.finalTimeTaken || 0);
+                        } else {
+                            switchPage('page-start');
+                        }
+                    }
+                } catch(e) { console.error(e); }
+            }
+        });
+
+        function saveQuizState() {
+            if (questions.length === 0) return;
+            const state = {
+                questions, currIdx, score, correctCount, username,
+                startTime: startTime ? startTime.getTime() : null,
+                currentPage: document.querySelector('.page.active').id,
+                timeTaken: window.finalTimeTaken || 0
+            };
+            sessionStorage.setItem('jadeQuizState', JSON.stringify(state));
+        }
+
+        // SoundManager using Web Audio API
+        const SoundManager = {
+            ctx: null,
+            enabled: true,
+            init() {
+                if (!this.ctx) {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            },
+            playOsc(freq, type, duration, vol, detune=0) {
+                if (!this.enabled || !this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+                if(detune) osc.detune.value = detune;
+                gain.gain.setValueAtTime(vol, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + duration);
+            },
+            playClick() {
+                this.init();
+                this.playOsc(600, 'sine', 0.1, 0.3);
+            },
+            playTick() {
+                this.init();
+                this.playOsc(800, 'triangle', 0.05, 0.1);
+            },
+            playTension() {
+                this.init();
+                this.playOsc(200, 'sawtooth', 0.1, 0.2);
+                setTimeout(() => this.playOsc(250, 'sawtooth', 0.1, 0.2), 150);
+            },
+            playCorrect() {
+                this.init();
+                // Arpeggio
+                this.playOsc(440, 'square', 0.1, 0.1);
+                setTimeout(() => this.playOsc(554, 'square', 0.1, 0.1), 100);
+                setTimeout(() => this.playOsc(659, 'square', 0.2, 0.1), 200);
+                setTimeout(() => this.playOsc(880, 'square', 0.3, 0.1), 300);
+            },
+            playWrong() {
+                this.init();
+                this.playOsc(150, 'sawtooth', 0.3, 0.2);
+                setTimeout(() => this.playOsc(100, 'sawtooth', 0.5, 0.2), 200);
+            },
+            playWin() {
+                this.init();
+                [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
+                    setTimeout(() => this.playOsc(freq, 'square', 0.2, 0.15), i * 150);
+                });
+                setTimeout(() => this.playOsc(1046.50, 'square', 0.6, 0.2), 600);
+            },
+            playLose() {
+                this.init();
+                [300, 250, 200, 150].forEach((freq, i) => {
+                    setTimeout(() => this.playOsc(freq, 'triangle', 0.3, 0.2), i * 200);
+                });
+            }
+        };
+
+        function toggleSound() {
+            SoundManager.enabled = !SoundManager.enabled;
+            document.getElementById('sound-toggle').innerText = SoundManager.enabled ? '🔊' : '🔇';
+            if(SoundManager.enabled) SoundManager.playClick();
+        }
+
+        // Confetti implementation
+        function fireConfetti() {
+            const canvas = document.getElementById('confetti');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            let particles = [];
+            for(let i=0; i<100; i++) {
+                particles.push({
+                    x: canvas.width/2, y: canvas.height/2,
+                    vx: (Math.random()-0.5)*20, vy: (Math.random()-1)*20,
+                    size: Math.random()*10+5,
+                    color: ['#fbbf24', '#10b981', '#ef4444', '#3b82f6'][Math.floor(Math.random()*4)]
+                });
+            }
+            function draw() {
+                ctx.clearRect(0,0,canvas.width,canvas.height);
+                let active = false;
+                particles.forEach(p => {
+                    p.x += p.vx; p.y += p.vy; p.vy += 0.5; // gravity
+                    if(p.y < canvas.height) active = true;
+                    ctx.fillStyle = p.color;
+                    ctx.fillRect(p.x, p.y, p.size, p.size);
+                });
+                if(active) requestAnimationFrame(draw);
+            }
+            draw();
+        }
+
+        const API_BASE = '/api';
+        let questions = [];
+        let currIdx = 0;
+        let score = 0;
+        let correctCount = 0;
+        let username = '';
+        let timerInterval;
+        let timeLeft = 30;
+        let startTime;
+
+        function switchPage(pageId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+        }
+
+        async function startTest() {
+            sessionStorage.removeItem('jadeQuizState');
+            SoundManager.init(); // Unlock audio on user interaction
+            SoundManager.playClick();
+            username = '寻宝猎人_' + Math.floor(Math.random() * 10000);
+            switchPage('page-loading');
+            
+            try {
+                const res = await fetch(`${API_BASE}/questions/random`);
+                if (!res.ok) throw new Error("Failed");
+                questions = await res.json();
+                
+                if(questions.length === 0){
+                    alert("宝库为空，请先录入题目！");
+                    switchPage('page-start');
+                    return;
+                }
+                currIdx = 0;
+                score = 0;
+                correctCount = 0;
+                startTime = new Date();
+                setTimeout(() => {
+                    switchPage('page-quiz');
+                    renderQuestion();
+                }, 800); // Fake loading for suspense
+            } catch (err) {
+                alert("加载题目失败，请检查网络！");
+                switchPage('page-start');
+            }
+        }
+
+        function buildMediaHtml(q) {
+            let imgUrl = q.image_url;
+            if (!imgUrl && q.type === 'img-text') imgUrl = 'images/placeholder.png';
+            if (imgUrl) return `<img src="${imgUrl}" class="q-img">`;
+            if (q.image_description) return `<div class="q-img-placeholder">📜<br><br>${q.image_description}</div>`;
+            return '';
+        }
+
+        function renderQuestion() {
+            if (currIdx >= questions.length || currIdx >= 20) {
+                return submitResult();
+            }
+            saveQuizState();
+            
+            const app = document.getElementById('app');
+            app.classList.remove('shake');
+            document.getElementById('inline-feedback').style.display = 'none';
+            
+            const qContent = document.getElementById('q-content');
+            const optCont = document.getElementById('q-options');
+
+            optCont.style.pointerEvents = 'auto';
+            optCont.style.opacity = '1';
+
+            qContent.classList.remove('slide-in-right');
+            optCont.classList.remove('slide-in-right');
+            void qContent.offsetWidth; 
+            qContent.classList.add('slide-in-right');
+            optCont.classList.add('slide-in-right');
+
+            const q = questions[currIdx];
+            document.getElementById('q-curr').innerText = currIdx + 1;
+            document.getElementById('q-text').innerText = q.question_text || '';
+            
+            const mediaCont = document.getElementById('q-media');
+            mediaCont.innerHTML = buildMediaHtml(q);
+
+            optCont.innerHTML = '';
+            
+            let optsList = [
+                { text: q.opt1, imgUrl: q.opt1_image_url, imgDesc: q.opt1_image_desc, index: 0 },
+                { text: q.opt2, imgUrl: q.opt2_image_url, imgDesc: q.opt2_image_desc, index: 1 },
+                { text: q.opt3, imgUrl: q.opt3_image_url, imgDesc: q.opt3_image_desc, index: 2 },
+                { text: q.opt4, imgUrl: q.opt4_image_url, imgDesc: q.opt4_image_desc, index: 3 }
+            ];
+            
+            if (q.type === 'image' || q.type === 'boolean') {
+                optsList = optsList.slice(0, 2); // Force 2 options
+            } else {
+                optsList = optsList.filter(o => o.text || o.imgDesc || o.imgUrl);
+            }
+
+            const isGrid = q.type === 'image';
+            if (isGrid) {
+                optCont.style.display = 'grid';
+                optCont.style.gridTemplateColumns = '1fr 1fr';
+                optCont.style.gap = '15px';
+            } else {
+                optCont.style.display = 'flex';
+                optCont.style.flexDirection = 'column';
+                optCont.style.gap = '15px';
+            }
+
+            optsList.forEach(o => {
+                const div = document.createElement('div');
+                const isImageOpt = q.type === 'image';
+                const isBoolOpt = q.type === 'boolean';
+                div.className = 'option-item ' + (isImageOpt ? 'img-opt ' : '');
+                
+                let h = '';
+                let actualImgUrl = o.imgUrl;
+                if (!actualImgUrl && isImageOpt) actualImgUrl = 'images/placeholder.png';
+                
+                if (actualImgUrl) {
+                    h += `<img src="${actualImgUrl}" style="height:160px; max-height:none; width:100%; object-fit:cover; border:none; border-radius:8px;">`;
+                } else if (o.imgDesc) {
+                    h += `<div class="q-img-placeholder" style="padding:10px; margin:0; min-height:60px;">${o.imgDesc}</div>`;
+                }
+                
+                let actualText = o.text;
+                if (!actualText && isBoolOpt) actualText = o.index === 0 ? '正确' : '错误';
+                
+                if (actualText && !isImageOpt) {
+                    h += `<span style="${isBoolOpt ? 'font-size:24px; text-align:center; width:100%;' : ''}">${actualText}</span>`;
+                }
+                
+                div.innerHTML = h || (isImageOpt ? '' : '<span>宝箱</span>');
+                if (isImageOpt || isBoolOpt) {
+                    div.style.padding = isImageOpt ? '8px' : '20px 10px';
+                    div.style.justifyContent = 'center';
+                }
+                div.onclick = (e) => {
+                    SoundManager.playClick();
+                    handleAnswer(o.index, div);
+                };
+                optCont.appendChild(div);
+            });
+
+            resetTimer();
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            timeLeft = 30;
+            document.getElementById('timer-text').innerText = timeLeft;
+            const bar = document.getElementById('timer-bar');
+            bar.style.transition = 'none';
+            bar.style.transform = 'scaleX(1)';
+            void bar.offsetWidth; 
+            bar.style.transition = 'transform 30s linear';
+            bar.style.transform = 'scaleX(0)';
+
+            document.getElementById('timer-text').style.color = '#fff';
+            
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                if (timeLeft < 0) timeLeft = 0;
+                document.getElementById('timer-text').innerText = timeLeft;
+                
+                if (timeLeft > 0 && timeLeft <= 5) {
+                    SoundManager.playTension();
+                    document.getElementById('timer-text').style.color = '#ef4444';
+                    document.getElementById('timer-text').style.textShadow = '0 0 10px #ef4444';
+                } else if (timeLeft > 0 && timeLeft <= 15) {
+                    SoundManager.playTick();
+                }
+
+                if (timeLeft <= 0) {
+                    handleAnswer(-1, null);
+                }
+            }, 1000);
+        }
+
+        function handleAnswer(ansIdx, el) {
+            clearInterval(timerInterval);
+            document.getElementById('timer-bar').style.transition = 'none';
+            
+            const q = questions[currIdx];
+            const isCorrect = ansIdx === q.correct_idx;
+            
+            document.getElementById('q-options').style.pointerEvents = 'none';
+            
+            const feedbackInline = document.getElementById('inline-feedback');
+
+            if (isCorrect) {
+                SoundManager.playCorrect();
+                correctCount++;
+                score += 5;
+                if(el) el.classList.add('glow');
+                
+                feedbackInline.style.display = 'none';
+                const toast = document.getElementById('toast-popup');
+                toast.classList.add('show');
+                
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                    nextQuestion();
+                }, 2000);
+            } else {
+                SoundManager.playWrong();
+                document.getElementById('app').classList.add('shake');
+                
+                feedbackInline.style.display = 'flex';
+                feedbackInline.style.flexDirection = 'column';
+                feedbackInline.innerHTML = `
+                    <div style="display: flex; flex-direction: row; align-items: flex-start; gap: 12px; animation: bounceIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+                        <img src="images/avatar_fail.png" style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover; object-position: center; border: 3px solid var(--primary); box-shadow: 0 5px 15px rgba(0,0,0,0.5); flex-shrink: 0; background: white; margin-top: 5px;">
+                        <div style="background: rgba(0,0,0,0.6); padding: 15px; border-radius: 16px; border-top-left-radius: 0; color: #fef3c7; font-size:14px; border: 2px dashed var(--wrong); position: relative; flex: 1; box-shadow: inset 0 0 10px rgba(0,0,0,0.5);">
+                            <div style="color:var(--wrong); font-family:'ZCOOL KuaiLe'; font-size:20px; margin-bottom:8px; text-shadow: 1px 1px 0 #7f1d1d;">💥 糟糕，打眼了！</div>
+                            ${q.explanation || '翡翠水深，再接再厉！'}
+                        </div>
+                    </div>
+                    <button class="btn btn-main" style="margin-top:20px;" onclick="SoundManager.playClick(); nextQuestion()">继续寻宝</button>
+                `;
+            }
+        }
+
+        function nextQuestion() {
+            currIdx++;
+            renderQuestion();
+        }
+
+        function reconstructResult(timeTaken) {
+            document.getElementById('final-score').innerText = score;
+            document.getElementById('final-correct').innerText = correctCount;
+            const m = Math.floor(timeTaken / 60);
+            const s = timeTaken % 60;
+            document.getElementById('final-time').innerText = `${m}分${s}秒`;
+            
+            let lvl = "";
+            let advice = "";
+            if (score >= 85) {
+                lvl = "神仙眼鉴赏家";
+                advice = "【真乃神人也】您的翡翠鉴赏功底已臻化境！无论是极其隐蔽的造假手段，还是微乎其微的种水分级，都逃不过您这双毒辣的“神仙眼”。您对各种行业黑话和市场行情更是如数家珍，在圈内绝对是懂行的顶尖高手。这种水平完全可以亲自下场参与高货的品鉴与交易，尽显宗师风范！";
+            } else if (score >= 65) {
+                lvl = "资深老玩家";
+                advice = "【眼力非凡】您对翡翠的鉴别技巧掌握得已经相当出色，不仅熟悉各种种水的特征，对行业里的黑话和商家的常见套路也了如指掌。您在市场里已经具备了不错的自我保护能力，只要保持警惕，不贪图不切实际的便宜，基本不会再交学费。继续保持这份眼力与定力！";
+            } else if (score >= 45) {
+                lvl = "理性的观望者";
+                advice = "【中规中矩】您已经掌握了翡翠的基本盘概念，能够区分常见的一些种水和器型，遇到明显的假货也能有所警觉。但在面对以次充好、打灯仙图或者复杂工艺掩盖瑕疵的手段时，仍缺乏足够的实战毒辣眼光。建议在购买时务必认准权威鉴定证书，并且多与同行交流避坑经验。";
+            } else if (score >= 25) {
+                lvl = "懵懂的学徒";
+                advice = "【初窥门径】您对翡翠有了一定的兴趣和最基本的了解，听说过一些诸如“冰种”、“A货”的名词，但实战经验严重不足。面对商家经过美化的“仙图”或复杂的黑话，您很容易被忽悠和误导。现阶段请多看少买，切勿轻易尝试捡漏或接触原石，踏实积累基础知识才是正道。";
+            } else {
+                lvl = "待宰的羔羊";
+                advice = "【险象环生】您的翡翠知识储备目前还非常薄弱，几乎不具备分辨真伪和判断价值的能力。在如今套路满满的翡翠市场中，如果您现在盲目下手，极大概率会买到酸洗染色的B+C货，或者以高价买到“砖头料”。建议您暂时捂紧钱包，先系统学习翡翠的基础种水色概念和防坑常识。";
+            }
+
+            document.getElementById('result-lvl').innerText = lvl;
+            document.getElementById('result-advice').innerText = advice;
+            document.getElementById('result-avatar').src = score >= 60 ? 'images/avatar_success.png' : 'images/avatar_fail.png';
+        }
+
+        async function submitResult() {
+            const timeTaken = Math.floor((new Date() - startTime) / 1000);
+            window.finalTimeTaken = timeTaken;
+            try {
+                await fetch(`${API_BASE}/records`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ user_name: username, score, time_taken: timeTaken })
+                });
+            } catch(e) { console.error(e) }
+
+            switchPage('page-result');
+            reconstructResult(timeTaken);
+            saveQuizState();
+            
+            if(score >= 80) {
+                SoundManager.playWin();
+                fireConfetti();
+            } else {
+                SoundManager.playLose();
+            }
+        }
+    </script>
+</body>
+</html>
