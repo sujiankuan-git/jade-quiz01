@@ -11,7 +11,6 @@
     <meta property="og:image" content="/images/placeholder.png">
     <meta property="og:type" content="website">
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Noto+Sans+SC:wght@400;700&display=swap');
 
@@ -415,7 +414,7 @@
                     
                     <div id="capture-footer" style="display:none; margin-top: 15px; color: var(--text-sec); font-size: 15px; font-weight: bold; border-top: 1px dashed var(--primary); padding-top: 15px; flex-direction: column; align-items: center; justify-content: center;">
                         <div style="background: white; padding: 5px; border-radius: 8px; margin-bottom: 10px;">
-                            <img id="qr-img" src="" style="width: 70px; height: 70px; display: block;">
+                            <img src="images/qrcode.png" style="width: 70px; height: 70px; display: block;">
                         </div>
                         <span style="font-family: 'ZCOOL KuaiLe', cursive; text-shadow: 1px 1px 0 rgba(0,0,0,0.5);">长按扫码 · 测测你的鉴别眼力！</span>
                     </div>
@@ -452,12 +451,6 @@
             footer.style.display = 'flex'; 
             
             try {
-                const qrImg = document.getElementById('qr-img');
-                if (!qrImg.src || !qrImg.src.startsWith('data:image')) {
-                    const qrUrl = await QRCode.toDataURL(window.location.href, { margin: 1, color: { dark: '#047857', light: '#ffffff' } });
-                    qrImg.src = qrUrl;
-                }
-
                 const canvas = await html2canvas(captureArea, {
                     scale: 2, // High resolution for mobile
                     backgroundColor: '#047857',
