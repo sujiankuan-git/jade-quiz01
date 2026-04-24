@@ -397,10 +397,7 @@
             </div>
             
 
-            <div id="ad-banner-container" style="display:none; width: 100%; margin-top: 15px; text-align: center; cursor: pointer;">
-                <img id="ad-banner-img" src="" style="width: 100%; border-radius: 8px; object-fit: cover; max-height: 80px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); border: 2px solid var(--primary-dark);">
-                <div style="font-size: 10px; color: var(--text-sec); opacity: 0.5; text-align: right; margin-top: 2px;">广告</div>
-            </div>
+
         </div>
 
         <!-- Page: Result -->
@@ -481,6 +478,14 @@
             </div>
             
             <button style="width: 100%; margin-top: 25px; padding: 15px; border-radius: 16px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); color: white; font-size: 16px; cursor: pointer; font-weight: bold; transition: all 0.2s;" onclick="document.getElementById('poster-overlay').style.display='none'">关闭弹窗</button>
+        </div>
+
+        <!-- Ad Banner Container (Fixed at Bottom) -->
+        <div id="ad-banner-container" style="display:none; position: sticky; bottom: 0; left: 0; width: 100%; text-align: center; cursor: pointer; z-index: 500; background: linear-gradient(to top, rgba(2, 44, 34, 1) 60%, rgba(2, 44, 34, 0)); padding: 20px 0px 0px 0px; margin-top: auto;">
+            <div style="position: relative; display: inline-block; width: 100%;">
+                <img id="ad-banner-img" src="" style="width: 100%; object-fit: cover; max-height: 80px; box-shadow: 0 -4px 20px rgba(0,0,0,0.5); border-top: 2px solid var(--primary-dark); display: block;">
+                <div style="position: absolute; top: 4px; right: 4px; font-size: 10px; color: white; background: rgba(0,0,0,0.4); padding: 2px 4px; border-radius: 4px; pointer-events: none;">广告</div>
+            </div>
         </div>
     </div>
 
