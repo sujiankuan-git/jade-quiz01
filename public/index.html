@@ -1007,7 +1007,7 @@
         fetch(`${API_BASE}/ad-config`).then(r => r.json()).then(adData => {
             const bannerContainer = document.getElementById('ad-banner-container');
             const bannerImg = document.getElementById('ad-banner-img');
-            if (adData && adData.is_enabled === 1 && adData.image_url) {
+            if (adData && adData.is_enabled && adData.image_url) {
                 bannerImg.src = adData.image_url;
                 bannerContainer.onclick = () => {
                     if (adData.click_action_type === 'popup') {
