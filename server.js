@@ -83,11 +83,19 @@ db.serialize(() => {
         id INTEGER PRIMARY KEY,
         image_url TEXT,
         link_url TEXT,
-        is_enabled INTEGER DEFAULT 0
+        is_enabled INTEGER DEFAULT 0,
+        qr_code_url TEXT,
+        click_action_type TEXT DEFAULT 'link',
+        popup_qr_url TEXT,
+        popup_text TEXT DEFAULT '扫码打开小程序，免费鉴宝'
     )`, () => {
+        db.run(`ALTER TABLE ad_config ADD COLUMN qr_code_url TEXT`, () => {}); // Ignore error if already exists
+        db.run(`ALTER TABLE ad_config ADD COLUMN click_action_type TEXT DEFAULT 'link'`, () => {}); 
+        db.run(`ALTER TABLE ad_config ADD COLUMN popup_qr_url TEXT`, () => {}); 
+        db.run(`ALTER TABLE ad_config ADD COLUMN popup_text TEXT DEFAULT '扫码打开小程序，免费鉴宝'`, () => {}); 
         db.get(`SELECT COUNT(*) as count FROM ad_config`, [], (err, row) => {
             if (row && row.count === 0) {
-                db.run(`INSERT INTO ad_config (id, image_url, link_url, is_enabled) VALUES (1, '', '', 0)`);
+                db.run(`INSERT INTO ad_config (id, image_url, link_url, is_enabled, qr_code_url) VALUES (1, '', '', 0, '')`);
             }
         });
     });
@@ -252,14 +260,17 @@ app.get('/api/records', (req, res) => {
 app.get('/api/ad-config', (req, res) => {
     db.get(`SELECT * FROM ad_config WHERE id = 1`, [], (err, row) => {
         if (err) return res.status(500).json({ error: err.message });
-        res.json(row || { image_url: '', link_url: '', is_enabled: 0 });
+        res.json(row || { 
+            image_url: '', link_url: '', is_enabled: 0, qr_code_url: '',
+            click_action_type: 'link', popup_qr_url: '', popup_text: '扫码打开小程序，免费鉴宝'
+        });
     });
 });
 
 app.post('/api/ad-config', requireAuth, (req, res) => {
-    const { image_url, link_url, is_enabled } = req.body;
-    db.run(`UPDATE ad_config SET image_url = ?, link_url = ?, is_enabled = ? WHERE id = 1`, 
-    [image_url, link_url, is_enabled ? 1 : 0], function(err) {
+    const { image_url, link_url, is_enabled, qr_code_url, click_action_type, popup_qr_url, popup_text } = req.body;
+    db.run(`UPDATE ad_config SET image_url = ?, link_url = ?, is_enabled = ?, qr_code_url = ?, click_action_type = ?, popup_qr_url = ?, popup_text = ? WHERE id = 1`, 
+    [image_url, link_url, is_enabled ? 1 : 0, qr_code_url, click_action_type || 'link', popup_qr_url, popup_text || '扫码打开小程序，免费鉴宝'], function(err) {
         if (err) return res.status(500).json({ error: err.message });
         res.json({ message: 'Ad config updated', changes: this.changes });
     });

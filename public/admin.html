@@ -128,8 +128,39 @@
                 </div>
                 <img id="ad-img-preview" class="img-preview" src="" style="max-width: 100%; max-height: 150px; border-radius: 4px; border: 1px dashed #ccc; display: none;">
 
-                <label style="color:#111827; margin-top: 20px;">落地页链接 (Target URL)</label>
-                <input type="text" id="ad-link-url" placeholder="例如：https://mp.weixin.qq.com/s/..." style="width: 100%; margin-bottom: 15px;">
+                <label style="color:#111827; margin-top: 20px;">助理二维码图片 (QR Code)</label>
+                <div class="form-row" style="margin-bottom: 15px;">
+                    <input type="text" id="ad-qr-url" placeholder="图片 URL 或 点击上传" style="flex:1;">
+                    <input type="file" id="upload-ad-qr" style="display:none;" onchange="handleUpload(this, 'ad-qr-url')">
+                    <button type="button" onclick="document.getElementById('upload-ad-qr').click()" style="background:#3b82f6; color:white; border:none; padding:8px 12px; border-radius:4px; cursor:pointer;">上传图片</button>
+                    <button type="button" onclick="document.getElementById('ad-qr-url').value=''" style="background:#9ca3af; color:white; border:none; padding:8px 12px; border-radius:4px; cursor:pointer;">清空</button>
+                </div>
+                <img id="ad-qr-preview" class="img-preview" src="" style="max-width: 100%; max-height: 150px; border-radius: 4px; border: 1px dashed #ccc; display: none;">
+
+                <label style="color:#111827; margin-top: 20px;">点击广告后的行为</label>
+                <div style="margin-bottom: 15px;">
+                    <label style="margin-right: 20px;"><input type="radio" name="ad-click-action" value="link" checked onchange="toggleAdActionFields()"> 跳转指定链接</label>
+                    <label><input type="radio" name="ad-click-action" value="popup" onchange="toggleAdActionFields()"> 弹窗展示二维码</label>
+                </div>
+
+                <div id="ad-action-link-fields">
+                    <label style="color:#111827;">落地页链接 (Target URL)</label>
+                    <input type="text" id="ad-link-url" placeholder="例如：https://mp.weixin.qq.com/s/..." style="width: 100%; margin-bottom: 15px;">
+                </div>
+
+                <div id="ad-action-popup-fields" style="display: none; background: #f3f4f6; padding: 15px; border-radius: 8px; border: 1px solid #e5e7eb;">
+                    <label style="color:#111827; font-size: 14px; font-weight: bold;">弹窗引导文字</label>
+                    <input type="text" id="ad-popup-text" placeholder="例如：扫码打开小程序，免费鉴宝" value="扫码打开小程序，免费鉴宝" style="width: 100%; margin-bottom: 15px; padding: 8px;">
+                    
+                    <label style="color:#111827; font-size: 14px; font-weight: bold;">弹窗二维码图片</label>
+                    <div class="form-row" style="margin-bottom: 10px;">
+                        <input type="text" id="ad-popup-qr-url" placeholder="图片 URL 或 点击上传" style="flex:1; padding: 8px;">
+                        <input type="file" id="upload-ad-popup-qr" style="display:none;" onchange="handleUpload(this, 'ad-popup-qr-url')">
+                        <button type="button" onclick="document.getElementById('upload-ad-popup-qr').click()" style="background:#3b82f6; color:white; border:none; padding:8px 12px; border-radius:4px; cursor:pointer;">上传图片</button>
+                        <button type="button" onclick="document.getElementById('ad-popup-qr-url').value=''" style="background:#9ca3af; color:white; border:none; padding:8px 12px; border-radius:4px; cursor:pointer;">清空</button>
+                    </div>
+                    <img id="ad-popup-qr-preview" class="img-preview" src="" style="max-width: 100%; max-height: 150px; border-radius: 4px; border: 1px dashed #ccc; display: none;">
+                </div>
 
                 <label style="display:flex; align-items:center; gap:10px; cursor:pointer; margin-top: 20px; font-weight: bold; color: #111827;">
                     <input type="checkbox" id="ad-is-enabled" style="width:18px; height:18px;"> 
@@ -485,8 +516,22 @@
             const res = await fetch('/api/ad-config');
             const data = await res.json();
             document.getElementById('ad-img-url').value = data.image_url || '';
+            document.getElementById('ad-qr-url').value = data.qr_code_url || '';
             document.getElementById('ad-link-url').value = data.link_url || '';
             document.getElementById('ad-is-enabled').checked = !!data.is_enabled;
+            
+            const action = data.click_action_type || 'link';
+            const actionInput = document.querySelector(`input[name="ad-click-action"][value="${action}"]`);
+            if (actionInput) actionInput.checked = true;
+            document.getElementById('ad-popup-text').value = data.popup_text || '扫码打开小程序，免费鉴宝';
+            document.getElementById('ad-popup-qr-url').value = data.popup_qr_url || '';
+            
+            // Define toggle function globally or just execute the logic here
+            if(typeof toggleAdActionFields === 'function') toggleAdActionFields();
+            else {
+                document.getElementById('ad-action-link-fields').style.display = action === 'link' ? 'block' : 'none';
+                document.getElementById('ad-action-popup-fields').style.display = action === 'popup' ? 'block' : 'none';
+            }
             const preview = document.getElementById('ad-img-preview');
             if (data.image_url) {
                 preview.src = data.image_url;
@@ -494,16 +539,35 @@
             } else {
                 preview.style.display = 'none';
             }
+            const previewQr = document.getElementById('ad-qr-preview');
+            if (data.qr_code_url) {
+                previewQr.src = data.qr_code_url;
+                previewQr.style.display = 'block';
+            } else {
+                previewQr.style.display = 'none';
+            }
+            const popupQrPreview = document.getElementById('ad-popup-qr-preview');
+            if (data.popup_qr_url) {
+                popupQrPreview.src = data.popup_qr_url;
+                popupQrPreview.style.display = 'block';
+            } else {
+                popupQrPreview.style.display = 'none';
+            }
         } catch (e) {
             console.error('Failed to fetch ad config', e);
         }
     }
 
     async function saveAdConfig() {
+        const actionInput = document.querySelector('input[name="ad-click-action"]:checked');
         const payload = {
             image_url: document.getElementById('ad-img-url').value,
+            qr_code_url: document.getElementById('ad-qr-url').value,
             link_url: document.getElementById('ad-link-url').value,
-            is_enabled: document.getElementById('ad-is-enabled').checked
+            is_enabled: document.getElementById('ad-is-enabled').checked,
+            click_action_type: actionInput ? actionInput.value : 'link',
+            popup_text: document.getElementById('ad-popup-text').value,
+            popup_qr_url: document.getElementById('ad-popup-qr-url').value
         };
         try {
             const res = await fetch('/api/ad-config', {
@@ -600,7 +664,18 @@
             const data = await res.json();
             if(data.image_url) {
                 document.getElementById(targetInputId).value = data.image_url;
-                if(targetInputId === 'edit-q-img-url') document.getElementById('edit-q-img-preview').src = data.image_url;
+                if(targetInputId === 'edit-q-img-url') {
+                    document.getElementById('edit-q-img-preview').src = data.image_url;
+                } else if(targetInputId === 'ad-img-url') {
+                    const p = document.getElementById('ad-img-preview');
+                    p.src = data.image_url; p.style.display = 'block';
+                } else if(targetInputId === 'ad-qr-url') {
+                    const p = document.getElementById('ad-qr-preview');
+                    p.src = data.image_url; p.style.display = 'block';
+                } else if(targetInputId === 'ad-popup-qr-url') {
+                    const p = document.getElementById('ad-popup-qr-preview');
+                    p.src = data.image_url; p.style.display = 'block';
+                }
             }
         } catch(e) { alert("上传失败!"); }
     }
@@ -646,6 +721,12 @@
         loadQuestions();
         if (typeof fetchRecords === 'function') fetchRecords();
         if (typeof fetchAdConfig === 'function') fetchAdConfig();
+    }
+
+    function toggleAdActionFields() {
+        const action = document.querySelector('input[name="ad-click-action"]:checked').value;
+        document.getElementById('ad-action-link-fields').style.display = action === 'link' ? 'block' : 'none';
+        document.getElementById('ad-action-popup-fields').style.display = action === 'popup' ? 'block' : 'none';
     }
 
     // Init
