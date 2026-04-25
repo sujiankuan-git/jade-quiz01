@@ -101,6 +101,12 @@
             animation: bounceIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
         }
         .page.active { display: flex; }
+        .page::after {
+            content: '';
+            display: block;
+            min-height: var(--ad-spacer-height, 30px);
+            flex-shrink: 0;
+        }
 
         @keyframes bounceIn {
             0% { opacity: 0; transform: scale(0.9); }
@@ -402,7 +408,7 @@
 
         <!-- Page: Result -->
         <div id="page-result" class="page">
-            <div style="margin: auto 0; text-align: center;">
+            <div style="width: 100%; text-align: center;">
                 <div id="result-avatar-container" style="display: flex; justify-content: center; margin-bottom: -40px; position: relative; z-index: 10;">
                     <img id="result-avatar" src="images/avatar_success.png" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; object-position: center; border: 4px solid var(--primary); box-shadow: 0 5px 15px rgba(0,0,0,0.5); background: white;">
                 </div>
@@ -428,7 +434,7 @@
                     </div>
                 </div>
                 
-                <div style="margin-top: 30px; display: flex; gap: 15px;">
+                <div id="result-btn-group" style="margin-top: 30px; display: flex; gap: 15px;">
                     <button class="btn btn-main" style="flex: 1;" onclick="sessionStorage.removeItem('jadeQuizState'); location.reload()">再次闯关</button>
                     <button id="btn-share" class="btn btn-blue" style="flex: 1; margin-top: 0;" onclick="generatePoster()">分享战绩得好礼</button>
                 </div>
@@ -462,19 +468,15 @@
                     </div>
                 </div>
                 
-                <div style="display: flex; gap: 15px; align-items: center; background: rgba(255,255,255,0.1); padding: 12px; border-radius: 12px; border: 1px solid rgba(52, 211, 153, 0.4); box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
-                    <div style="flex-shrink: 0; width: 50px; height: 75px; border-radius: 6px; overflow: hidden; border: 1px solid var(--primary); background: #022c22; box-shadow: 0 2px 5px rgba(0,0,0,0.5);">
-                        <img id="step2-thumb" src="images/expert_bg_25d.png" style="width: 100%; height: 100%; object-fit: cover; display: block;">
-                    </div>
+                <div style="display: flex; flex-direction: column; gap: 12px; background: rgba(255,255,255,0.1); padding: 15px; border-radius: 12px; border: 1px solid rgba(52, 211, 153, 0.4); box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
                     <div style="color: #e2e8f0; font-size: 14px; line-height: 1.5;">
                         <strong style="color: white;">第二步：</strong><br>长按保存下方的专属鉴定海报，并<span style="color: var(--primary);">分享到朋友圈</span>。
                     </div>
+                    <!-- Poster Container -->
+                    <div id="poster-container" style="width: 100%; border-radius: 8px; box-shadow: 0 5px 20px rgba(0,0,0,0.5); overflow: hidden; border: 2px solid var(--primary-dark);">
+                        <!-- Image goes here -->
+                    </div>
                 </div>
-            </div>
-
-            <!-- Poster Container -->
-            <div id="poster-container" style="width: 100%; border-radius: 16px; box-shadow: 0 5px 20px rgba(0,0,0,0.5); overflow: hidden; border: 2px solid var(--primary-dark);">
-                <!-- Image goes here -->
             </div>
             
             <button style="width: 100%; margin-top: 25px; padding: 15px; border-radius: 16px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); color: white; font-size: 16px; cursor: pointer; font-weight: bold; transition: all 0.2s;" onclick="document.getElementById('poster-overlay').style.display='none'">关闭弹窗</button>
@@ -486,14 +488,14 @@
     <div id="ad-popup-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:9999; flex-direction:column; align-items:center; justify-content:center; padding: 20px;" onclick="this.style.display='none'">
         <div style="background: white; width: 100%; max-width: 320px; border-radius: 20px; padding: 30px 20px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3); position: relative;" onclick="event.stopPropagation()">
             <div id="ad-popup-close" style="position: absolute; top: 15px; right: 15px; width: 30px; height: 30px; line-height: 30px; text-align: center; font-size: 20px; color: #9ca3af; cursor: pointer; border-radius: 50%; background: #f3f4f6; transition: 0.2s;" onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'" onclick="document.getElementById('ad-popup-overlay').style.display='none'">&times;</div>
-            <h3 style="color: var(--text-main); margin-top: 0; margin-bottom: 20px; font-size: 18px;" id="ad-popup-text-display">扫码打开小程序，免费鉴宝</h3>
+            <h3 style="color: #1f2937; margin-top: 0; margin-bottom: 20px; font-size: 18px; font-weight: bold;" id="ad-popup-text-display">扫码打开小程序，免费鉴宝</h3>
             <img id="ad-popup-qr-img" src="" style="width: 180px; height: 180px; display: block; margin: 0 auto 15px auto; border-radius: 8px; border: 1px solid #e5e7eb; padding: 5px;">
-            <p style="color: var(--text-sec); font-size: 13px; margin: 0;">长按识别二维码</p>
+            <p style="color: #6b7280; font-size: 13px; margin: 0;">长按识别二维码</p>
         </div>
     </div>
 
     <!-- Ad Banner Container (Fixed at Bottom) -->
-    <div id="ad-banner-container" style="display:none; position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 500px; text-align: center; cursor: pointer; z-index: 2000; background: linear-gradient(to top, rgba(2, 44, 34, 1) 50%, rgba(2, 44, 34, 0)); padding: 24px 12px 10px 12px; pointer-events: auto; box-sizing: border-box;">
+    <div id="ad-banner-container" style="display:none; position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 500px; text-align: center; cursor: pointer; z-index: 9000; background: linear-gradient(to top, rgba(2, 44, 34, 1) 50%, rgba(2, 44, 34, 0)); padding: 24px 12px 10px 12px; pointer-events: auto; box-sizing: border-box;">
         <div style="position: relative; display: block; width: 100%;">
             <img id="ad-banner-img" src="" style="width: 100%; display: block; border-radius: 14px; box-shadow: 0 4px 20px rgba(0,0,0,0.6);">
             <div style="position: absolute; top: 6px; right: 6px; font-size: 10px; color: white; background: rgba(0,0,0,0.45); padding: 2px 6px; border-radius: 4px; pointer-events: none;">广告</div>
@@ -539,10 +541,8 @@
                 
                 const imgUrl = canvas.toDataURL('image/jpeg', 0.9);
                 const container = document.getElementById('poster-container');
-                container.innerHTML = `<img src="${imgUrl}" style="width: 100%; display: block; border-radius: 15px;">`;
+                container.innerHTML = `<img src="${imgUrl}" style="width: 100%; display: block; border-radius: 8px;">`;
                 
-                document.getElementById('step2-thumb').src = imgUrl;
-
                 document.getElementById('poster-overlay').style.display = 'flex';
             } catch (err) {
                 console.error(err);
@@ -995,6 +995,8 @@
             switchPage('page-result');
             reconstructResult(timeTaken);
             saveQuizState();
+            // Recalculate ad padding after result page renders
+            setTimeout(() => { if (window.applyAdPadding) window.applyAdPadding(); }, 100);
             
             if(score >= 80) {
                 SoundManager.playWin();
@@ -1020,8 +1022,17 @@
                     }
                 };
                 bannerContainer.style.display = 'block';
+                // Use CSS variable to dynamically adjust the spacer height in all pages
+                const applyAdPadding = window.applyAdPadding = () => {
+                    const bannerH = bannerContainer.offsetHeight || 162;
+                    document.documentElement.style.setProperty('--ad-spacer-height', (bannerH + 30) + 'px');
+                };
+                applyAdPadding();
+                // Recalculate after image loads
+                bannerImg.onload = applyAdPadding;
             } else {
                 bannerContainer.style.display = 'none';
+                document.documentElement.style.setProperty('--ad-spacer-height', '30px');
             }
             
             // Set QR Code images if configured
