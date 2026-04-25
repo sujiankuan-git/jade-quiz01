@@ -550,10 +550,22 @@
                     colorLight: "#ffffff",
                     correctLevel: QRCode.CorrectLevel.L
                 });
+                
+                // html2canvas 有时无法截取动态生成的 canvas，需将其转为纯 img 标签
+                const canvasEl = qrContainer.querySelector('canvas');
+                if (canvasEl) {
+                    const img = document.createElement('img');
+                    img.src = canvasEl.toDataURL("image/png");
+                    img.style.width = '70px';
+                    img.style.height = '70px';
+                    img.style.display = 'block';
+                    qrContainer.innerHTML = '';
+                    qrContainer.appendChild(img);
+                }
             }
             
             // Add a small delay to ensure rendering is complete before capture
-            await new Promise(r => setTimeout(r, 100));
+            await new Promise(r => setTimeout(r, 300));
             
             try {
                 const canvas = await html2canvas(captureArea, {
