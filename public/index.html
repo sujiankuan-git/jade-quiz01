@@ -11,6 +11,7 @@
     <meta property="og:image" content="/images/placeholder.png">
     <meta property="og:type" content="website">
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script src="js/qrcode.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Noto+Sans+SC:wght@400;700&display=swap');
 
@@ -427,8 +428,8 @@
                     </div>
                     
                     <div id="capture-footer" style="display: none; margin-top: 15px; color: var(--text-sec); font-size: 15px; font-weight: bold; flex-direction: column; align-items: center; justify-content: center;">
-                        <div style="background: white; padding: 5px; border-radius: 8px; margin-bottom: 10px;">
-                            <img class="qr-code-img" src="images/qrcode.png" style="width: 70px; height: 70px; display: block;">
+                        <div id="poster-qrcode-container" style="background: white; padding: 5px; border-radius: 8px; margin-bottom: 10px; width: 70px; height: 70px; display: flex; justify-content: center; align-items: center;">
+                            <!-- QR Code injected here -->
                         </div>
                         <span style="font-family: 'ZCOOL KuaiLe', cursive; text-shadow: 1px 1px 0 rgba(0,0,0,0.5);">长按扫码 · 测测你的鉴别眼力！</span>
                     </div>
@@ -602,6 +603,17 @@
                     }
                 } catch(e) { console.error(e); }
             }
+            
+            // Generate website QR Code for the poster
+            const qrUrl = window.location.origin + window.location.pathname;
+            new QRCode(document.getElementById("poster-qrcode-container"), {
+                text: qrUrl,
+                width: 70,
+                height: 70,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.L
+            });
         });
 
         function saveQuizState() {
