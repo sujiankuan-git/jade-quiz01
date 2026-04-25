@@ -529,8 +529,14 @@
                 // Apply Poster styles
                 captureArea.style.padding = '300px 15px 20px 15px';
                 captureArea.style.borderRadius = '0';
-                captureArea.style.background = "#022c22 url('images/expert_bg_25d.png') no-repeat top center";
-                captureArea.style.backgroundSize = '100% auto';
+                
+                // Use dynamic gradient mask to seamlessly fade the background image's bottom edge
+                const cw = captureArea.offsetWidth || window.innerWidth;
+                captureArea.style.backgroundColor = '#022c22';
+                captureArea.style.backgroundImage = `linear-gradient(to bottom, rgba(2,44,34,0) 0%, rgba(2,44,34,0) 75%, #022c22 98%), url('images/expert_bg_25d.png')`;
+                captureArea.style.backgroundPosition = 'top center, top center';
+                captureArea.style.backgroundRepeat = 'no-repeat, no-repeat';
+                captureArea.style.backgroundSize = `100% ${cw}px, 100% auto`;
                 
                 scoreBox = document.getElementById('score-box');
                 if (scoreBox) {
