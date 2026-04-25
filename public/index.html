@@ -414,6 +414,12 @@
                     <img id="result-avatar" src="images/avatar_success.png" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; object-position: center; border: 4px solid var(--primary); box-shadow: 0 5px 15px rgba(0,0,0,0.5); background: white;">
                 </div>
                 <div id="capture-area" style="padding: 45px 10px 20px 10px; border-radius: 20px; background: linear-gradient(135deg, #047857 0%, #022c22 100%); position: relative; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+                    <div id="capture-footer" style="display: none; margin-top: -60px; margin-bottom: 20px; color: var(--text-sec); font-size: 15px; font-weight: bold; flex-direction: column; align-items: center; justify-content: center; z-index: 10; position: relative;">
+                        <div id="poster-qrcode-container" style="background: white; padding: 6px; border-radius: 10px; margin-bottom: 10px; width: 76px; height: 76px; display: flex; justify-content: center; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.5);">
+                            <!-- QR Code injected here -->
+                        </div>
+                        <span style="font-family: 'ZCOOL KuaiLe', cursive; color: #fff; text-shadow: 1px 1px 3px rgba(0,0,0,0.8);">长按扫码 · 测测你的鉴别眼力！</span>
+                    </div>
                     <p style="font-size: 16px; color: var(--text-sec); margin-bottom: 5px; font-weight: bold; letter-spacing: 2px;">您的翡翠知识水平</p>
                     <h1 class="title" id="result-lvl" style="font-size: 42px; margin-bottom: 20px; color: var(--primary); text-shadow: 2px 2px 0 var(--primary-dark);">评估中</h1>
                     
@@ -427,12 +433,7 @@
                         <div id="result-advice" style="text-align:left; font-size:14px; line-height:1.6; color:#fef3c7; background:rgba(255,255,255,0.1); padding:15px; border-radius:12px;"></div>
                     </div>
                     
-                    <div id="capture-footer" style="display: none; margin-top: 15px; color: var(--text-sec); font-size: 15px; font-weight: bold; flex-direction: column; align-items: center; justify-content: center;">
-                        <div id="poster-qrcode-container" style="background: white; padding: 6px; border-radius: 10px; margin-bottom: 10px; width: 76px; height: 76px; display: flex; justify-content: center; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.2);">
-                            <!-- QR Code injected here -->
-                        </div>
-                        <span style="font-family: 'ZCOOL KuaiLe', cursive; text-shadow: 1px 1px 0 rgba(0,0,0,0.5);">长按扫码 · 测测你的鉴别眼力！</span>
-                    </div>
+
                 </div>
                 
                 <div id="result-btn-group" style="margin-top: 30px; display: flex; gap: 15px;">
