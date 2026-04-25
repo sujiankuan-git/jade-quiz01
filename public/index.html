@@ -519,55 +519,74 @@
             const origBorderRadius = captureArea.style.borderRadius;
             const origBackground = captureArea.style.background;
             
-            // Apply Poster styles
-            captureArea.style.padding = '300px 15px 20px 15px';
-            captureArea.style.borderRadius = '0';
-            captureArea.style.background = "#022c22 url('images/expert_bg_25d.png') no-repeat top center";
-            captureArea.style.backgroundSize = '100% auto';
-            
-            const scoreBox = document.getElementById('score-box');
-            const origScoreBoxBorder = scoreBox.style.border;
-            const origScoreBoxShadow = scoreBox.style.boxShadow;
-            scoreBox.style.border = 'none';
-            scoreBox.style.boxShadow = 'none';
-            
-            const resultAdvice = document.getElementById('result-advice');
-            const origAdviceBg = resultAdvice.style.background;
-            resultAdvice.style.background = 'transparent';
-            
-            // Show footer, hide avatar
-            footer.style.display = 'flex'; 
-            avatarContainer.style.display = 'none';
-            
-            // Generate website QR Code if not already generated
-            const qrContainer = document.getElementById("poster-qrcode-container");
-            if (qrContainer && qrContainer.innerHTML.trim() === '') {
-                new QRCode(qrContainer, {
-                    text: window.location.origin + window.location.pathname,
-                    width: 70,
-                    height: 70,
-                    colorDark: "#000000",
-                    colorLight: "#ffffff",
-                    correctLevel: QRCode.CorrectLevel.L
-                });
-                
-                // html2canvas 有时无法截取动态生成的 canvas，需将其转为纯 img 标签
-                const canvasEl = qrContainer.querySelector('canvas');
-                if (canvasEl) {
-                    const img = document.createElement('img');
-                    img.src = canvasEl.toDataURL("image/png");
-                    img.style.width = '70px';
-                    img.style.height = '70px';
-                    img.style.display = 'block';
-                    qrContainer.innerHTML = '';
-                    qrContainer.appendChild(img);
-                }
-            }
-            
-            // Add a small delay to ensure rendering is complete before capture
-            await new Promise(r => setTimeout(r, 300));
+            let scoreBox = null;
+            let origScoreBoxBorder = '';
+            let origScoreBoxShadow = '';
+            let resultAdvice = null;
+            let origAdviceBg = '';
             
             try {
+                // Apply Poster styles
+                captureArea.style.padding = '300px 15px 20px 15px';
+                captureArea.style.borderRadius = '0';
+                captureArea.style.background = "#022c22 url('images/expert_bg_25d.png') no-repeat top center";
+                captureArea.style.backgroundSize = '100% auto';
+                
+                scoreBox = document.getElementById('score-box');
+                if (scoreBox) {
+                    origScoreBoxBorder = scoreBox.style.border;
+                    origScoreBoxShadow = scoreBox.style.boxShadow;
+                    scoreBox.style.border = 'none';
+                    scoreBox.style.boxShadow = 'none';
+                }
+                
+                resultAdvice = document.getElementById('result-advice');
+                if (resultAdvice) {
+                    origAdviceBg = resultAdvice.style.background;
+                    resultAdvice.style.background = 'transparent';
+                }
+                
+                // Show footer, hide avatar
+                footer.style.display = 'flex'; 
+                avatarContainer.style.display = 'none';
+                
+                // Generate website QR Code if not already generated
+                const qrContainer = document.getElementById("poster-qrcode-container");
+                if (qrContainer && qrContainer.innerHTML.trim() === '') {
+                    try {
+                        new QRCode(qrContainer, {
+                            text: window.location.origin + window.location.pathname,
+                            width: 70,
+                            height: 70,
+                            colorDark: "#000000",
+                            colorLight: "#ffffff",
+                            correctLevel: QRCode.CorrectLevel.L
+                        });
+                        
+                        // html2canvas 有时无法截取动态生成的 canvas，需将其转为纯 img 标签
+                        const canvasEl = qrContainer.querySelector('canvas');
+                        if (canvasEl) {
+                            try {
+                                const dataUrl = canvasEl.toDataURL("image/png");
+                                const img = document.createElement('img');
+                                img.src = dataUrl;
+                                img.style.width = '70px';
+                                img.style.height = '70px';
+                                img.style.display = 'block';
+                                qrContainer.innerHTML = '';
+                                qrContainer.appendChild(img);
+                            } catch (e) {
+                                console.error('Canvas toDataURL failed', e);
+                            }
+                        }
+                    } catch (qrErr) {
+                        console.error('QRCode generation failed', qrErr);
+                    }
+                }
+                
+                // Add a small delay to ensure rendering is complete before capture
+                await new Promise(r => setTimeout(r, 400));
+                
                 const canvas = await html2canvas(captureArea, {
                     scale: 2, // High resolution for mobile
                     backgroundColor: '#022c22',
