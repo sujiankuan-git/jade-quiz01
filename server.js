@@ -76,8 +76,15 @@ db.serialize(() => {
         user_name TEXT,
         score INTEGER,
         time_taken INTEGER,
+        ip TEXT,
+        location TEXT,
+        user_agent TEXT,
         create_time DATETIME DEFAULT CURRENT_TIMESTAMP
-    )`);
+    )`, () => {
+        db.run(`ALTER TABLE records ADD COLUMN ip TEXT`, () => {});
+        db.run(`ALTER TABLE records ADD COLUMN location TEXT`, () => {});
+        db.run(`ALTER TABLE records ADD COLUMN user_agent TEXT`, () => {});
+    });
 
     db.run(`CREATE TABLE IF NOT EXISTS ad_config (
         id INTEGER PRIMARY KEY,
@@ -241,11 +248,40 @@ app.post('/api/upload', requireAuth, upload.single('image'), (req, res) => {
 // 5. Submit test record
 app.post('/api/records', (req, res) => {
     const { user_name, score, time_taken } = req.body;
-    db.run(`INSERT INTO records (user_name, score, time_taken) VALUES (?, ?, ?)`, 
-    [user_name || 'Anonymous', score, time_taken], function(err) {
-        if (err) return res.status(500).json({ error: err.message });
-        res.json({ message: 'Record saved', record_id: this.lastID });
-    });
+    let ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '';
+    if (ip.includes(',')) ip = ip.split(',')[0].trim();
+    const user_agent = req.headers['user-agent'] || '';
+
+    // Fast response to client
+    res.json({ message: 'Record received, processing in background' });
+
+    // Background processing for location and DB insertion
+    (async () => {
+        let location = '未知';
+        try {
+            // Very simple validation to avoid querying local IPs
+            if (ip && ip !== '::1' && !ip.startsWith('127.') && !ip.startsWith('192.168.')) {
+                // Use a fast timeout for fetch
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 2000);
+                const response = await fetch(`http://ip-api.com/json/${ip}?lang=zh-CN`, { signal: controller.signal });
+                clearTimeout(timeoutId);
+                const data = await response.json();
+                if (data.status === 'success') {
+                    location = [data.country, data.regionName, data.city].filter(Boolean).join(' ').trim();
+                }
+            } else if (ip === '::1' || ip.startsWith('127.')) {
+                location = '本地测试';
+            }
+        } catch (e) {
+            console.error('IP location fetch failed', e.message);
+        }
+
+        db.run(`INSERT INTO records (user_name, score, time_taken, ip, location, user_agent) VALUES (?, ?, ?, ?, ?, ?)`, 
+        [user_name || 'Anonymous', score, time_taken, ip, location, user_agent], (err) => {
+            if (err) console.error('Failed to save record:', err.message);
+        });
+    })();
 });
 
 // 6. Get records (for admin)

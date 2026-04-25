@@ -101,19 +101,42 @@
 
     <!-- Records Tab -->
     <div id="tab-records" class="tab-content">
-        <table>
-            <thead>
-                <tr>
-                    <th>记录ID</th>
-                    <th>用户</th>
-                    <th>得分</th>
-                    <th>用时</th>
-                    <th>时间</th>
-                </tr>
-            </thead>
-            <tbody id="records-tbody"></tbody>
-        </table>
+        <div class="sub-tabs">
+            <button id="records-tab-list" class="sub-tab-btn active" onclick="switchRecordsTab('list')">记录列表</button>
+            <button id="records-tab-stats" class="sub-tab-btn" onclick="switchRecordsTab('stats')">按天数据统计</button>
         </div>
+
+        <div id="records-list-view">
+            <table style="table-layout: fixed; width: 100%;">
+                <thead>
+                    <tr>
+                        <th style="width: 50px;">ID</th>
+                        <th style="width: 100px;">用户</th>
+                        <th style="width: 60px;">得分</th>
+                        <th style="width: 60px;">用时</th>
+                        <th style="width: 180px;">IP / 所在地</th>
+                        <th style="width: 200px;">设备信息</th>
+                        <th style="width: 150px;">时间</th>
+                    </tr>
+                </thead>
+                <tbody id="records-tbody"></tbody>
+            </table>
+        </div>
+
+        <div id="records-stats-view" style="display: none;">
+            <table style="width: 100%;">
+                <thead>
+                    <tr>
+                        <th>日期</th>
+                        <th>参与总人数</th>
+                        <th>平均得分</th>
+                        <th>平均耗时 (秒)</th>
+                    </tr>
+                </thead>
+                <tbody id="stats-tbody"></tbody>
+            </table>
+        </div>
+    </div>
 
         <!-- Ad Config Tab -->
         <div id="tab-ad" class="tab-content" style="max-width: 600px;">
@@ -493,22 +516,87 @@
         }
     }
 
+    function switchRecordsTab(tab) {
+        document.getElementById('records-tab-list').classList.toggle('active', tab === 'list');
+        document.getElementById('records-tab-stats').classList.toggle('active', tab === 'stats');
+        document.getElementById('records-list-view').style.display = tab === 'list' ? 'block' : 'none';
+        document.getElementById('records-stats-view').style.display = tab === 'stats' ? 'block' : 'none';
+    }
+
     async function loadRecords() {
         const res = await fetch('/api/records');
         const list = await res.json();
+        
+        // Render List
         const tbody = document.getElementById('records-tbody');
         tbody.innerHTML = '';
         list.forEach(r => {
             const tr = document.createElement('tr');
+            
+            // Format IP and Location
+            let ipLocHtml = '-';
+            if (r.ip || r.location) {
+                ipLocHtml = `<div style="font-size:12px;">
+                    <div style="color:#2563eb;">${r.ip || '未知IP'}</div>
+                    <div style="color:#4b5563;">${r.location || '未知归属地'}</div>
+                </div>`;
+            }
+
+            // Format User Agent (simple truncation)
+            let uaHtml = '-';
+            if (r.user_agent) {
+                // Try to extract OS or Browser if it's very long
+                let ua = r.user_agent;
+                let displayUa = ua.length > 50 ? ua.substring(0, 47) + '...' : ua;
+                uaHtml = `<div style="font-size:11px; color:#6b7280; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${ua}">${displayUa}</div>`;
+            }
+
             tr.innerHTML = `
                 <td>${r.id}</td>
                 <td>${r.user_name}</td>
                 <td style="color:#10B981; font-weight:bold;">${r.score}</td>
                 <td>${r.time_taken}s</td>
-                <td>${r.create_time}</td>
+                <td>${ipLocHtml}</td>
+                <td>${uaHtml}</td>
+                <td style="font-size:12px; color:#4b5563;">${r.create_time}</td>
             `;
             tbody.appendChild(tr);
         });
+
+        // Render Stats
+        const statsMap = {};
+        list.forEach(r => {
+            if (!r.create_time) return;
+            const date = r.create_time.split(' ')[0]; // Extract YYYY-MM-DD
+            if (!statsMap[date]) {
+                statsMap[date] = { count: 0, totalScore: 0, totalTime: 0 };
+            }
+            statsMap[date].count++;
+            statsMap[date].totalScore += r.score;
+            statsMap[date].totalTime += r.time_taken;
+        });
+
+        const statsTbody = document.getElementById('stats-tbody');
+        statsTbody.innerHTML = '';
+        const sortedDates = Object.keys(statsMap).sort((a, b) => b.localeCompare(a)); // Descending dates
+        
+        if (sortedDates.length === 0) {
+            statsTbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 20px; color: #6b7280;">暂无答题数据</td></tr>';
+        } else {
+            sortedDates.forEach(date => {
+                const stat = statsMap[date];
+                const avgScore = (stat.totalScore / stat.count).toFixed(1);
+                const avgTime = (stat.totalTime / stat.count).toFixed(1);
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="font-weight:bold; color:#1f2937;">${date}</td>
+                    <td style="color:#3b82f6; font-weight:bold;">${stat.count} <span style="font-weight:normal; color:#6b7280; font-size:12px;">人</span></td>
+                    <td style="color:#10B981; font-weight:bold;">${avgScore} <span style="font-weight:normal; color:#6b7280; font-size:12px;">分</span></td>
+                    <td>${avgTime} <span style="font-weight:normal; color:#6b7280; font-size:12px;">秒</span></td>
+                `;
+                statsTbody.appendChild(tr);
+            });
+        }
     }
 
     async function fetchAdConfig() {
