@@ -552,7 +552,7 @@
                 
                 // Fetch pre-rendered QR Code
                 const qrContainer = document.getElementById("poster-qrcode-container");
-                if (qrContainer && qrContainer.innerHTML.trim() === '') {
+                if (qrContainer && qrContainer.querySelectorAll('img').length === 0) {
                     const offscreenQr = document.getElementById('offscreen-qr');
                     if (offscreenQr) {
                         const img = offscreenQr.querySelector('img');
@@ -564,10 +564,12 @@
                         
                         if (img && img.src && img.src.length > 50) {
                             targetImg.src = img.src;
+                            qrContainer.innerHTML = '';
                             qrContainer.appendChild(targetImg);
                         } else if (canvasEl) {
                             try {
                                 targetImg.src = canvasEl.toDataURL("image/png");
+                                qrContainer.innerHTML = '';
                                 qrContainer.appendChild(targetImg);
                             } catch(e) { console.error(e); }
                         }
