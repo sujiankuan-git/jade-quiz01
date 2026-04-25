@@ -526,7 +526,13 @@
             
             const scoreBox = document.getElementById('score-box');
             const origScoreBoxBorder = scoreBox.style.border;
+            const origScoreBoxShadow = scoreBox.style.boxShadow;
             scoreBox.style.border = 'none';
+            scoreBox.style.boxShadow = 'none';
+            
+            const resultAdvice = document.getElementById('result-advice');
+            const origAdviceBg = resultAdvice.style.background;
+            resultAdvice.style.background = 'transparent';
             
             // Show footer, hide avatar
             footer.style.display = 'flex'; 
@@ -557,7 +563,11 @@
                 captureArea.style.borderRadius = origBorderRadius;
                 captureArea.style.background = origBackground;
                 captureArea.style.backgroundSize = '';
-                if (scoreBox) scoreBox.style.border = origScoreBoxBorder;
+                if (scoreBox) {
+                    scoreBox.style.border = origScoreBoxBorder;
+                    scoreBox.style.boxShadow = origScoreBoxShadow;
+                }
+                if (resultAdvice) resultAdvice.style.background = origAdviceBg;
                 footer.style.display = 'none';
                 avatarContainer.style.display = 'flex';
 
