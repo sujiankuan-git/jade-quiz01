@@ -539,6 +539,19 @@
             footer.style.display = 'flex'; 
             avatarContainer.style.display = 'none';
             
+            // Generate website QR Code if not already generated
+            const qrContainer = document.getElementById("poster-qrcode-container");
+            if (qrContainer && qrContainer.innerHTML.trim() === '') {
+                new QRCode(qrContainer, {
+                    text: window.location.origin + window.location.pathname,
+                    width: 70,
+                    height: 70,
+                    colorDark: "#000000",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.L
+                });
+            }
+            
             // Add a small delay to ensure rendering is complete before capture
             await new Promise(r => setTimeout(r, 100));
             
@@ -603,17 +616,6 @@
                     }
                 } catch(e) { console.error(e); }
             }
-            
-            // Generate website QR Code for the poster
-            const qrUrl = window.location.origin + window.location.pathname;
-            new QRCode(document.getElementById("poster-qrcode-container"), {
-                text: qrUrl,
-                width: 70,
-                height: 70,
-                colorDark: "#000000",
-                colorLight: "#ffffff",
-                correctLevel: QRCode.CorrectLevel.L
-            });
         });
 
         function saveQuizState() {
