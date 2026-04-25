@@ -428,7 +428,7 @@
                     </div>
                     
                     <div id="capture-footer" style="display: none; margin-top: 15px; color: var(--text-sec); font-size: 15px; font-weight: bold; flex-direction: column; align-items: center; justify-content: center;">
-                        <div id="poster-qrcode-container" style="background: white; padding: 5px; border-radius: 8px; margin-bottom: 10px; width: 70px; height: 70px; display: flex; justify-content: center; align-items: center;">
+                        <div id="poster-qrcode-container" style="background: white; padding: 6px; border-radius: 10px; margin-bottom: 10px; width: 76px; height: 76px; display: flex; justify-content: center; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.2);">
                             <!-- QR Code injected here -->
                         </div>
                         <span style="font-family: 'ZCOOL KuaiLe', cursive; text-shadow: 1px 1px 0 rgba(0,0,0,0.5);">长按扫码 · 测测你的鉴别眼力！</span>
@@ -558,8 +558,9 @@
                         const img = offscreenQr.querySelector('img');
                         const canvasEl = offscreenQr.querySelector('canvas');
                         const targetImg = document.createElement('img');
-                        targetImg.style.width = '70px';
-                        targetImg.style.height = '70px';
+                        targetImg.style.width = '100%';
+                        targetImg.style.height = '100%';
+                        targetImg.style.objectFit = 'contain';
                         targetImg.style.display = 'block';
                         
                         if (img && img.src && img.src.length > 50) {
