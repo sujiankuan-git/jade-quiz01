@@ -550,37 +550,27 @@
                 footer.style.display = 'flex'; 
                 avatarContainer.style.display = 'none';
                 
-                // Generate website QR Code if not already generated
+                // Fetch pre-rendered QR Code
                 const qrContainer = document.getElementById("poster-qrcode-container");
                 if (qrContainer && qrContainer.innerHTML.trim() === '') {
-                    try {
-                        new QRCode(qrContainer, {
-                            text: window.location.origin + window.location.pathname,
-                            width: 70,
-                            height: 70,
-                            colorDark: "#000000",
-                            colorLight: "#ffffff",
-                            correctLevel: QRCode.CorrectLevel.L
-                        });
+                    const offscreenQr = document.getElementById('offscreen-qr');
+                    if (offscreenQr) {
+                        const img = offscreenQr.querySelector('img');
+                        const canvasEl = offscreenQr.querySelector('canvas');
+                        const targetImg = document.createElement('img');
+                        targetImg.style.width = '70px';
+                        targetImg.style.height = '70px';
+                        targetImg.style.display = 'block';
                         
-                        // html2canvas 有时无法截取动态生成的 canvas，需将其转为纯 img 标签
-                        const canvasEl = qrContainer.querySelector('canvas');
-                        if (canvasEl) {
+                        if (img && img.src && img.src.length > 50) {
+                            targetImg.src = img.src;
+                            qrContainer.appendChild(targetImg);
+                        } else if (canvasEl) {
                             try {
-                                const dataUrl = canvasEl.toDataURL("image/png");
-                                const img = document.createElement('img');
-                                img.src = dataUrl;
-                                img.style.width = '70px';
-                                img.style.height = '70px';
-                                img.style.display = 'block';
-                                qrContainer.innerHTML = '';
-                                qrContainer.appendChild(img);
-                            } catch (e) {
-                                console.error('Canvas toDataURL failed', e);
-                            }
+                                targetImg.src = canvasEl.toDataURL("image/png");
+                                qrContainer.appendChild(targetImg);
+                            } catch(e) { console.error(e); }
                         }
-                    } catch (qrErr) {
-                        console.error('QRCode generation failed', qrErr);
                     }
                 }
                 
@@ -622,6 +612,25 @@
         }
 
         window.addEventListener('DOMContentLoaded', () => {
+            // Pre-render QR code off-screen to avoid html2canvas timing issues
+            const offscreenDiv = document.createElement('div');
+            offscreenDiv.id = 'offscreen-qr';
+            offscreenDiv.style.position = 'absolute';
+            offscreenDiv.style.left = '-9999px';
+            offscreenDiv.style.top = '-9999px';
+            document.body.appendChild(offscreenDiv);
+            
+            try {
+                new QRCode(offscreenDiv, {
+                    text: window.location.origin + window.location.pathname,
+                    width: 70,
+                    height: 70,
+                    colorDark: "#000000",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.L
+                });
+            } catch (e) { console.error('Offscreen QR init failed', e); }
+
             const saved = sessionStorage.getItem('jadeQuizState');
             if (saved) {
                 try {
